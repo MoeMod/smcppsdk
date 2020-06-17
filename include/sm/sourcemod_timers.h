@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <type_traits>
 #include <ITimerSystem.h>
 
 namespace sm {
@@ -16,19 +17,19 @@ namespace sm {
             template<std::size_t N> struct priority_tag : priority_tag<N-1> {};
             template<> struct priority_tag<0> {};
             template<class MyFn, class MyHandler> auto CallTimerFunc(MyFn& fn, MyHandler &rthis, priority_tag<3>)
-                -> decltype(fn())
+                -> decltype(std::invoke(fn))
             {
-                return fn();
+                return std::invoke(fn);
             }
             template<class MyFn, class MyHandler> auto CallTimerFunc(MyFn& fn, MyHandler& rthis, priority_tag<2>)
-                -> decltype(fn(std::declval<std::shared_ptr<ITimer>>()))
+                -> decltype(std::invoke(fn, std::declval<std::shared_ptr<ITimer>>()))
             {
-                return fn(std::shared_ptr<ITimer>(rthis.m_pSharedThis, rthis.m_pTimer));
+                return std::invoke(fn, std::shared_ptr<ITimer>(rthis.m_pSharedThis, rthis.m_pTimer));
             }
             template<class MyFn, class MyHandler> auto CallTimerFunc(MyFn& fn, MyHandler& rthis, priority_tag<1>)
-                -> decltype(fn(std::declval<std::shared_ptr<ITimer>>(), std::declval<typename std::decay<MyHandler>::type::data_type>()))
+                -> decltype(std::invoke(fn, std::declval<std::shared_ptr<ITimer>>(), std::declval<typename std::decay<MyHandler>::type::data_type>()))
             {
-                return fn(std::shared_ptr<ITimer>(rthis.m_pSharedThis, rthis.m_pTimer), rthis.m_data);
+                return std::invoke(fn, std::shared_ptr<ITimer>(rthis.m_pSharedThis, rthis.m_pTimer), rthis.m_data);
             }
             template<class MyFn, class MyHandler> auto CallTimerFunc(MyFn& fn, MyHandler& rthis)
             {
@@ -60,7 +61,7 @@ namespace sm {
                     if (m_pSharedThis != nullptr)
                         timersys->KillTimer(m_pTimer);
                 }
-                Fn m_fn;
+                typename std::decay<Fn>::type m_fn;
                 ITimer* m_pTimer;
                 std::shared_ptr<MyHandler> m_pSharedThis;
                 AnyDataType m_data;

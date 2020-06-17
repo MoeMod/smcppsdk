@@ -141,7 +141,7 @@ namespace sm {
 					return ret;
 				}
 			}
-#if __cplusplus >= 202001
+#if __cpp_impl_three_way_comparison
 			friend auto operator<=>(const PluginFunctionCaller &a, const PluginFunctionCaller &b)
 			{
 				return a.m_pfn->GetFunctionID() <=> b.m_pfn->GetFunctionID();
