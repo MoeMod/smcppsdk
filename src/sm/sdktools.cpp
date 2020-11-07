@@ -96,7 +96,7 @@ namespace sm {
 
         void SetEntityModel(CBaseEntity *entity, const char *model)
         {
-            static VFuncCaller<void(CBasePlayer::*)(const char *)> caller(g_pBinTools, FindOffset("SetEntityModel"));
+            static VFuncCaller<void(CBaseEntity::*)(const char *)> caller(g_pBinTools, FindOffset("SetEntityModel"));
             return caller(entity, model);
 
         }

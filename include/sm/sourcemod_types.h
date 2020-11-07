@@ -1,9 +1,17 @@
 #pragma once
 
-class CBaseEntity;
-using CBasePlayer = CBaseEntity;
 class CEconItemView;
 
-using CBaseCombatWeapon = CBaseEntity;
 class IPhysicsObject;
+class IServerUnknown;
+class IServerEntity;
+class CBaseEntity;
 class CGameRules;
+
+
+#ifndef BASEENTITY_H
+class CBaseEntity : public IServerEntity {};
+class CBaseAnimating : public CBaseEntity {};
+class CBasePlayer : public CBaseAnimating {};
+class CBaseCombatWeapon : public CBaseAnimating {};
+#endif
