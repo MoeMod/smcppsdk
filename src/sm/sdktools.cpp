@@ -44,7 +44,7 @@ namespace sm {
             *(fieldtype_t *)vptr = FIELD_VOID;
         }
 */
-        bool SDK_OnLoad(char *error, size_t maxlength, bool late) {
+        bool detail::SDK_OnLoad(char *error, size_t maxlength, bool late) {
             char conf_error[255];
             if (!gameconfs->LoadGameConfigFile("sdktools.games", &g_pGameConf, conf_error, sizeof(conf_error)))
                 return false;
@@ -64,7 +64,7 @@ namespace sm {
             return offset;
         }
 
-        void SDK_OnUnload() {
+        void detail::SDK_OnUnload() {
             gameconfs->CloseGameConfigFile(g_pGameConf);
         }
 

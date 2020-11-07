@@ -233,7 +233,7 @@ namespace sm {
             g_pTerminateRoundDetoured = false;
         }
 
-        bool SDK_OnLoad(char *error, size_t maxlength, bool late) {
+        bool detail::SDK_OnLoad(char *error, size_t maxlength, bool late) {
             char conf_error[255];
             if (!gameconfs->LoadGameConfigFile("sm-cstrike.games", &g_pGameConf, conf_error, sizeof(conf_error)))
             {
@@ -256,7 +256,7 @@ namespace sm {
 
         }
 
-        void SDK_OnUnload() {
+        void detail::SDK_OnUnload() {
 
             if (g_TerminateRoundDetourEnabled)
             {

@@ -1,14 +1,15 @@
 #pragma once
 
-#include "hook_types.h"
+#include "sourcemod_types.h"
 #include "hook_result.h"
 #include "cstrike_const.h"
 
 namespace sm {
     namespace cstrike {
-
-        bool SDK_OnLoad(char* error, size_t maxlength, bool late);
-        void SDK_OnUnload();
+        namespace detail {
+            bool SDK_OnLoad(char *error, size_t maxlength, bool late);
+            void SDK_OnUnload();
+        }
 
         void CS_TerminateRound(float delay, CSRoundEndReason_e reason, bool blockhook = false);
 

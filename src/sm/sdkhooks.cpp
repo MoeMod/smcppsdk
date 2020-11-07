@@ -366,7 +366,7 @@ namespace sm {
 
         }
 
-        bool SDK_OnLoad(char *error, size_t maxlength, bool late) {
+        bool detail::SDK_OnLoad(char *error, size_t maxlength, bool late) {
             char buffer[256];
 
             buffer[0] = '\0';
@@ -503,7 +503,7 @@ namespace sm {
             g_Hooked.emplace(key, std::move(vh));
         }
 
-        void SDK_OnUnload() {
+        void detail::SDK_OnUnload() {
             gameconfs->CloseGameConfigFile(g_pGameConf);
         }
 

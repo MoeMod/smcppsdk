@@ -3,7 +3,7 @@
 
 #include "PlayerManager.h"
 #include "sm/sourcemod_players.h"
-#include "sm/hook_types.h"
+#include "sm/sourcemod_types.h"
 
 namespace sm{
     inline namespace sourcemod {

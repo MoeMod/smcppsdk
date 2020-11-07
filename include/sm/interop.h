@@ -7,7 +7,7 @@
 
 #include <sp_vm_api.h>
 #include <Color.h>
-#include <Vector.h>
+#include <vector.h>
 
 namespace sm {
 	namespace interop {

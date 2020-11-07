@@ -1,7 +1,7 @@
 #pragma once
 
 #include <IPlayerHelpers.h>
-#include "sm/hook_types.h"
+#include "sm/sourcemod_types.h"
 
 namespace sm{
     inline namespace sourcemod {

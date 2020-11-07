@@ -5,7 +5,7 @@
 
 namespace sm {
 	inline namespace console {
-		inline void FakePlayerCommand(edict_t* client, const char* format, ...)
+		inline void FakePlayerCommand(AutoEntity<edict_t *> client, const char* format, ...)
 		{
 			va_list va;
 			va_start(va, format);

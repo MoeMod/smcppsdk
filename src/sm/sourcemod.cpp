@@ -39,9 +39,9 @@ namespace sm {
                 }
                 return false;
             }
-            sm::sdkhooks::SDK_OnLoad(error, maxlen, late);
-            sm::sdktools::SDK_OnLoad(error, maxlen, late);
-            sm::cstrike::SDK_OnLoad(error, maxlen, late);
+            sm::sdkhooks::detail::SDK_OnLoad(error, maxlen, late);
+            sm::sdktools::detail::SDK_OnLoad(error, maxlen, late);
+            sm::cstrike::detail::SDK_OnLoad(error, maxlen, late);
 
             g_HudMsgNum = usermsgs->GetMessageIndex(g_pGameConf->GetKeyValue("HudTextMsg"));
             g_SayTextMsg = usermsgs->GetMessageIndex("SayText");
@@ -51,9 +51,9 @@ namespace sm {
         }
 
         void SDK_OnUnload() {
-            sm::sdkhooks::SDK_OnUnload();
-            sm::sdktools::SDK_OnUnload();
-            sm::cstrike::SDK_OnUnload();
+            sm::sdkhooks::detail::SDK_OnUnload();
+            sm::sdktools::detail::SDK_OnUnload();
+            sm::cstrike::detail::SDK_OnUnload();
             g_pSM->RemoveGameFrameHook(&OnGameFrame);
 
         }
