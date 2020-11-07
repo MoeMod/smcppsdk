@@ -205,7 +205,7 @@ namespace sm{
             } \
             inline void FUNC_PREFIX##All(const char* buffer) { \
                 for (int i = 1; i <= playerhelpers->GetMaxClients(); i++) { \
-                    if (IsClientInGame(IGamePlayerFrom(i))) { \
+                    if (playerhelpers->GetGamePlayer(i)->IsInGame()) { \
                         FUNC_PREFIX(i, buffer); \
                     } \
                 } \
@@ -246,6 +246,19 @@ namespace sm{
             }
 #pragma endregion
 #pragma region entityref
+            inline cell_t EntIndexToEntRef(int entity)
+            {
+                return gamehelpers->IndexToReference(entity);
+            }
+            inline int EntRefToEntIndex(cell_t ref)
+            {
+                return gamehelpers->ReferenceToIndex(ref);
+            }
+            inline cell_t MakeCompatEntRef(cell_t ref)
+            {
+                return gamehelpers->ReferenceToBCompatRef(ref);
+            }
+
             enum ClientRangeType
             {
                 RangeType_Visibility = 0,
@@ -258,6 +271,37 @@ namespace sm{
                 int size = GetClientsInRange(vOrigin, rangeType, result.data(), result.size());
                 result.resize(size);
                 return result;
+            }
+#pragma endregion
+#pragma region auth
+            // Must match clients.inc
+            enum AuthIdType
+            {
+                AuthId_Engine = 0,     /**< The game-specific auth string as returned from the engine */
+
+                // The following are only available on games that support Steam authentication.
+                AuthId_Steam2,         /**< Steam2 rendered format, ex "STEAM_1:1:4153990" */
+                AuthId_Steam3,         /**< Steam3 rendered format, ex "[U:1:8307981]" */
+                AuthId_SteamID64,      /**< A SteamID64 (uint64) as a String, ex "76561197968573709" */
+            };
+            inline void GetServerAuthId(AuthIdType authType, char *auth, size_t maxlen)
+            {
+                switch (authType)
+                {
+                    case AuthId_Steam3:
+                        gamehelpers->GetServerSteam3Id(auth, maxlen);
+                        break;
+
+                    case AuthId_SteamID64:
+                        ke::SafeSprintf(auth, maxlen, "%" PRIu64, gamehelpers->GetServerSteamId64());
+                        break;
+                    default:
+                        throw std::runtime_error("Unsupported AuthIdType for GetServerAuthId.");
+                }
+            }
+            inline uint64_t GetServerSteamAccountId()
+            {
+                return gamehelpers->GetServerSteamId64();
             }
 #pragma endregion
         }
