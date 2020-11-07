@@ -21,7 +21,7 @@ namespace sm {
 #endif
 		}
 		template<class Fn = void(*)(void(*)())>
-		auto CreateAwaitable(Fn &&fn) requires std::invocable<Fn, std::function<void()>>
+		auto CreateAwaitable(Fn &&fn) // requires std::invocable<Fn, std::function<void()>>
 		{
 			struct AwaitableResult
 			{
@@ -29,7 +29,7 @@ namespace sm {
 					return false;
 				}
 				void await_suspend(detail::coroutine_handle<> h) {
-					std::invoke(m_callback, [h] { h.resume(); });
+					std::invoke(m_callback, std::bind(&detail::coroutine_handle<>::resume, h));
 				}
 				void await_resume() noexcept {}
 
