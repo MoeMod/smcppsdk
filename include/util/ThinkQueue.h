@@ -22,7 +22,7 @@ private:
     {
     public:
         virtual ~BaseTask() = default;
-        virtual void operator()() = 0;
+        virtual void operator()() && = 0; // only need to execute once
 
         BaseTask *next = nullptr;
     };
@@ -36,8 +36,8 @@ private:
         Task(const Task &) = delete;
         Task(Task &&) = delete;
 
-        void operator()() override {
-            std::apply(m_func, m_args);
+        void operator()() && override {
+            std::apply(std::move(m_func), std::move(m_args));
         }
         Fn m_func;
         std::tuple<BoundArgs...> m_args;
@@ -59,7 +59,7 @@ inline void ThinkQueue::AddTask(ThinkQueue::BaseTask* task) {
 inline void ThinkQueue::CallAndClear() {
     BaseTask* cur_head = head.exchange(nullptr);
     while (cur_head != nullptr) {
-        (*cur_head)();
+        std::move(*cur_head)();
         delete std::exchange(cur_head, cur_head->next);
     }
 }
