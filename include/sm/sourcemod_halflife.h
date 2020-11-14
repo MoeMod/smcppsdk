@@ -4,6 +4,7 @@
 #include <engine/IEngineSound.h>
 #include <memory>
 #include <string>
+#include <stdexcept>
 
 namespace sm{
     inline namespace sourcemod {
