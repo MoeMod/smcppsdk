@@ -4,6 +4,7 @@
 #include <string>
 #include <functional>
 #include <array>
+#include <iterator>
 
 #include <sp_vm_api.h>
 #include <Color.h>
