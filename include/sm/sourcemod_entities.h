@@ -48,7 +48,7 @@ namespace sm {
 		T &EntProp(CBaseEntity *pEntity, decltype(Prop_Data), const char *prop, int size=sizeof(T), int element=0) {
 			assert(pEntity != nullptr);
 			sm_datatable_info_t info = {};
-			if(!gamehelpers->FindDataMapInfo(gamehelpers->GetDataMap(pEntity), prop, &info))
+			if (!gamehelpers->FindDataMapInfo(gamehelpers->GetDataMap(pEntity), prop, &info))
 				throw std::runtime_error("Property not found");
 			typedescription_t *td = info.prop;
 			ptrdiff_t offset = info.actual_offset + (element * (td->fieldSizeInBytes / td->fieldSize));
