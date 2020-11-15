@@ -99,7 +99,7 @@ namespace sm {
             TargetType value;
         };
 
-        inline namespace [[deprecated("Try using Converter<> instead of this namespace's functions.")]] deprecated {
+        inline namespace [[deprecated("Try using ent_cast() instead of this namespace's functions.")]] deprecated {
 
             inline CBaseEntity *edict2cbase(edict_t *edict) {
                 return ent_cast<CBaseEntity *>(edict);

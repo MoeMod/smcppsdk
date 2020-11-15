@@ -112,6 +112,13 @@ namespace sm {
             return caller(dest, input, activator, pcaller, value, outputid);
         }
 
+        // static void TeleportEntity( CBaseEntity *pSourceEntity, TeleportListEntry_t &entry, const Vector *newPosition, const QAngle *newAngles, const Vector *newVelocity )
+        void TeleportEntity(CBaseEntity* pEntity, Vector newpos, Vector newang, Vector newVel)
+        {
+            static VFuncCaller<void(CBaseEntity::*)(Vector, Vector, Vector)> caller(g_pBinTools, FindOffset("Teleport"));
+            return caller(pEntity, newpos, newang, newVel);
+        }
+
         void ForcePlayerSuicide(CBasePlayer * player, bool bExplode, bool bForce)
         {
             static VFuncCaller<void(CBasePlayer::*)(bool, bool)> caller(g_pBinTools, FindOffset("CommitSuicide"));

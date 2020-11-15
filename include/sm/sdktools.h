@@ -16,5 +16,6 @@ namespace sm {
         bool AcceptEntityInput(CBaseEntity * dest, const char *input, CBaseEntity *  activator=nullptr, CBaseEntity *  caller=nullptr, int outputid=0);
         void ForcePlayerSuicide(CBasePlayer * player, bool bExplode = false, bool bForce = false);
         void EquipPlayerWeapon(CBasePlayer * player, CBaseEntity *entity);
+        void TeleportEntity(CBaseEntity* pEntity, Vector newpos, Vector newang, Vector newVel);
     }
 }

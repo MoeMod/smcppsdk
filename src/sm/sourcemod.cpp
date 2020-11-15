@@ -13,7 +13,7 @@ namespace sm {
     inline namespace sourcemod {
         IGameConfig *g_pGameConf = nullptr;
         ICvar *icvar = nullptr;
-        IServerPluginHelpers* serverpluginhelpers = NULL;
+        IServerPluginHelpers* serverpluginhelpers = nullptr;
 
         inline namespace hudtext {
             int g_HudMsgNum = -1;
