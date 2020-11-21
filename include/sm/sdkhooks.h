@@ -3,7 +3,7 @@
 
 #include "util/EventDispatcher.hpp"
 
-#include "hook_takedamageinfo.h"
+#include "hack_takedamageinfo.h"
 #include "sourcemod_types.h"
 
 #include "hook_result.h"
@@ -12,7 +12,7 @@
 
 namespace sm {
     namespace sdkhooks {
-
+        using hack::TakeDamageInfo;
         namespace detail {
             struct HookTagBase {};
             template<class FuncType> struct HookTag;

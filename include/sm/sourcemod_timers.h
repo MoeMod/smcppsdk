@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <type_traits>
+#include <concepts>
 #include <ITimerSystem.h>
 
 namespace sm {
@@ -13,6 +14,13 @@ namespace sm {
         // void func();
         // void func(std::shared_ptr<ITimer>);
         // void func(std::shared_ptr<ITimer>, AnyDataType);
+
+        template<class T> concept AnyDataType_c = !std::is_void<T>::value;
+        template<class F> concept TimerFunc1_c = std::invocable<F>;
+        template<class F> concept TimerFunc2_c = std::invocable<F, std::shared_ptr<ITimer>>;
+        template<class F, class AnyDataType> concept TimerFunc3_c = std::invocable<F, std::shared_ptr<ITimer>, AnyDataType&> && AnyDataType_c<AnyDataType>;
+        template<class F, class AnyDataType> concept TimerFunc_c = TimerFunc1_c<F> || TimerFunc2_c<F> || TimerFunc3_c<F, AnyDataType>;
+		
         namespace detail {
             template<std::size_t N> struct priority_tag : priority_tag<N-1> {};
             template<> struct priority_tag<0> {};
@@ -37,7 +45,7 @@ namespace sm {
             }
         }
 
-        template<class Fn, class AnyDataType = std::nullptr_t> 
+        template<AnyDataType_c AnyDataType = std::nullptr_t, TimerFunc_c<AnyDataType> Fn>
         std::weak_ptr<ITimer> CreateTimer(float fInterval, Fn&& func, AnyDataType &&data = nullptr, int flags = 0)
         {
             class MyHandler : public ITimedEvent {

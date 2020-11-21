@@ -96,6 +96,7 @@ namespace sm {
         {
             template<class InputType> AutoEntity(InputType &&in) : value(Converter<typename std::decay<TargetType>::type>()(std::forward<InputType>(in))) {}
             operator TargetType() const { return value; }
+            template<class Ret = TargetType> decltype(&*std::declval<Ret>()) operator->() { return &*value; }
             TargetType value;
         };
 

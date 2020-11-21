@@ -6,6 +6,7 @@
 #include "util/ThinkQueue.h"
 #include "interop.h"
 #include "hook_result.h"
+#include "hack_sharesys.h"
 
 extern IForwardManager* g_pForwards;
 
@@ -77,6 +78,13 @@ namespace sm {
 			void RunOnMainThread(Fn&& fn, Args&&...data)
 			{
 				return sm::RequestFrame(std::forward<Fn>(fn), std::forward<Args>(data)...);
+			}
+
+			template<class Fn = void()>
+			interop::NativeCaller<Fn, SPVM_NATIVE_FUNC> GetNativeFunc(IPluginContext* pContext, const char* name)
+			{
+				SPVM_NATIVE_FUNC pfn = hack::FindGlobalNative(name);
+				return interop::NativeCaller<Fn, SPVM_NATIVE_FUNC>(pContext, pfn);
 			}
 		}
 	}

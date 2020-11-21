@@ -8,8 +8,6 @@ target_sources(smcppsdk INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}/src/sm/cstrike.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/sm/sourcemod.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/sm/sourcemod_hudtext.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/sm/sourcemod_players.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/sm/sourcemod_halflife.cpp
 )
 
 target_include_directories(smcppsdk INTERFACE

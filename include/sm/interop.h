@@ -31,11 +31,25 @@ namespace sm {
 			out = static_cast<T>(in);
 			return 1;
 		}
+		template<class T>
+		inline auto native2cell(IPluginContext* pContext, const T &in, cell_t *out) -> typename std::enable_if<std::is_integral<T>::value || std::is_enum<T>::value, int>::type
+		{
+			if(out)
+				*out = static_cast<cell_t>(in);
+			return 1;
+		}
 
 		template<class T>
 		inline auto cell2native(IPluginContext* pContext, cell_t in, T& out) -> typename std::enable_if<std::is_floating_point<T>::value, int>::type
 		{
 			out = sp_ctof(in);
+			return 1;
+		}
+		template<class T>
+		inline auto native2cell(IPluginContext* pContext, const T& in, cell_t* out) -> typename std::enable_if<std::is_floating_point<T>::value, int>::type
+		{
+			if (out)
+				*out = sp_ftoc(in);
 			return 1;
 		}
 
@@ -46,6 +60,7 @@ namespace sm {
 			out = str;
 			return 1;
 		}
+		inline int native2cell(IPluginContext* pContext, const std::string& in, cell_t* out) = delete; // TODO
 
 		inline int cell2native(IPluginContext* pContext, cell_t in, Color& out)
 		{
@@ -54,6 +69,7 @@ namespace sm {
 			out = Color(vecParams[0], vecParams[1], vecParams[2]);
 			return 1;
 		}
+		inline int native2cell(IPluginContext* pContext, const Color& in, cell_t* out) = delete; // TODO
 
 		inline int cell2native(IPluginContext* pContext, cell_t in, Vector& out)
 		{
@@ -62,6 +78,7 @@ namespace sm {
 			out = Vector(sp_ctof(vecParams[0]), sp_ctof(vecParams[1]), sp_ctof(vecParams[2]));
 			return 1;
 		}
+		inline int native2cell(IPluginContext* pContext, const Vector& in, cell_t* out) = delete; // TODO
 
 		template<template<class> class FnType, class Ret, class...Args >
 		inline auto cell2native(IPluginContext* pContext, cell_t in, FnType<Ret(Args...)>& out)
@@ -100,7 +117,7 @@ namespace sm {
 		inline void func_push(ICallable* c, std::string &str) { c->PushStringEx(str.data(), str.size(), SM_PARAM_STRING_UTF8, SM_PARAM_COPYBACK); }
 		inline void func_push(ICallable* c, const char *psz) { c->PushString(psz); }
 		template<std::size_t N> void func_push(ICallable* c, char (&str)[N]) { c->PushStringEx(str, N, SM_PARAM_STRING_UTF8, SM_PARAM_COPYBACK); }
-
+		
 		template<class Fn, class PtrType> class ForwardCaller;
 		template<class PtrType, class...Args> class ForwardCaller<cell_t(Args...), PtrType>
 		{
@@ -113,6 +130,10 @@ namespace sm {
 				(func_push(&*m_pfn, args), ..., m_pfn->Execute(&result));
 				return result;
 			}
+			friend auto operator<=>(const ForwardCaller& a, const ForwardCaller& b)
+			{
+				return a.m_pfn->GetFunctionID() <=> b.m_pfn->GetFunctionID();
+			}
 		};
 		template<class PtrType, class...Args> class ForwardCaller<void(Args...), PtrType>
 		{
@@ -122,6 +143,10 @@ namespace sm {
 			void operator()(const Args &...args) const
 			{
 				ForwardCaller<cell_t(Args...)>::operator()(args...);
+			}
+			friend auto operator<=>(const ForwardCaller& a, const ForwardCaller& b)
+			{
+				return a.m_pfn->GetFunctionID() <=> b.m_pfn->GetFunctionID();
 			}
 		};
 
@@ -142,25 +167,43 @@ namespace sm {
 					return ret;
 				}
 			}
-#if __cpp_impl_three_way_comparison
-			friend auto operator<=>(const PluginFunctionCaller &a, const PluginFunctionCaller &b)
+			friend auto operator<=>(const PluginFunctionCaller& a, const PluginFunctionCaller& b)
 			{
 				return a.m_pfn->GetFunctionID() <=> b.m_pfn->GetFunctionID();
 			}
-#else
-#define OPFN(OP) \
-			friend bool operator OP (const PluginFunctionCaller& a, const PluginFunctionCaller& b) \
-			{ \
-				return a.m_pfn->GetFunctionID() OP b.m_pfn->GetFunctionID(); \
-			} 
-		OPFN(==)
-		OPFN(!=)
-		OPFN(<)
-		OPFN(>)
-		OPFN(<=)
-		OPFN(>=)
-#undef OPFN
-#endif
+		};
+
+		template<class Fn, class PtrType> class NativeCaller;
+		template<class Ret, class...Args> class NativeCaller<Ret(Args...), SPVM_NATIVE_FUNC>
+		{
+			IPluginContext* const m_pContext;
+			SPVM_NATIVE_FUNC const m_pfn;
+
+		public:
+			NativeCaller(IPluginContext* pContext, SPVM_NATIVE_FUNC pf) : m_pContext(pContext), m_pfn(pf) {}
+
+			Ret operator()(Args...args) const
+			{
+				int params_size = (native2cell(m_pContext, args, nullptr) + ...);
+
+				std::vector<cell_t> params_vec(params_size + 1);
+
+				params_vec[0] = sizeof...(Args);
+				auto p = params_vec.data() + 1;
+				int placeholder_args[] = { (p += native2cell(m_pContext, args, p)) ... };
+				
+				cell_t out = (*m_pfn)(m_pContext, params_vec.data());
+				if constexpr (!std::is_void_v<Ret>)
+				{
+					Ret ret;
+					cell2native(m_pContext, out, ret);
+					return ret;
+				}
+			}
+			friend auto operator<=>(const NativeCaller& a, const NativeCaller& b)
+			{
+				return std::tie(a.m_pfn, a.m_pContext) <=> std::tie(b.m_pfn, b.m_pContext);
+			}
 		};
 
 		template<class...Args>
