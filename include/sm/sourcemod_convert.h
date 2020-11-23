@@ -11,11 +11,12 @@ namespace sm {
     inline namespace convert {
         // forward decl
         template<class From, class To> struct ConvertFunc;
-        template<class To> struct Converter;
-        template<class TargetType> struct AutoEntity;
-    	template<class TargetType>
+        template<class T> concept EntType_c = requires (const T & ent) { ConvertFunc<typename std::decay<T>::type, CBaseEntity*>()(ent); };
+        template<EntType_c To> struct Converter;
+        template<EntType_c TargetType> struct AutoEntity;
+    	template<EntType_c TargetType>
         constexpr auto ent_cast = [](const auto& x) { return Converter<typename std::decay<TargetType>::type>()(x); };
-        template<class T>
+        template<EntType_c T>
         constexpr auto make_auto_ent = [](const auto& x) { return AutoEntity<T>(x); };
 
     	// impl
@@ -35,20 +36,20 @@ namespace sm {
             template<class T> struct ConvertFuncSingle<T, T> : std::identity {};
             template<> struct ConvertFuncSingle<int, CBaseEntity*> { CBaseEntity* operator()(int id) const { return gamehelpers->ReferenceToEntity(gamehelpers->IndexToReference(id)); } };
             template<> struct ConvertFuncSingle<CBaseHandle, CBaseEntity*> { CBaseEntity* operator()(const CBaseHandle& handle) const { return gamehelpers->ReferenceToEntity(handle.ToInt() | (1 << 31));; } };
-            template<> struct ConvertFuncSingle<IServerUnknown*, CBaseEntity*> { CBaseEntity* operator()(IServerUnknown* unknown) const { return unknown->GetBaseEntity(); } };
+            template<> struct ConvertFuncSingle<IServerUnknown*, CBaseEntity*> { CBaseEntity* operator()(IServerUnknown* unknown) const { return unknown ? unknown->GetBaseEntity() : nullptr; } };
             template<> struct ConvertFuncSingle<int, edict_t*> { edict_t* operator()(int id) const { return gamehelpers->EdictOfIndex(id); } };
             template<> struct ConvertFuncSingle<IGamePlayer*, edict_t*> { edict_t* operator()(IGamePlayer* igp) const { return igp->GetEdict(); } };
-            template<> struct ConvertFuncSingle<IServerUnknown*, edict_t*> { edict_t* operator()(IServerUnknown* unknown) const { return unknown->GetNetworkable()->GetEdict(); } };
+            template<> struct ConvertFuncSingle<IServerUnknown*, edict_t*> { edict_t* operator()(IServerUnknown* unknown) const { return unknown ? unknown->GetNetworkable()->GetEdict() : nullptr; } };
             template<> struct ConvertFuncSingle<edict_t*, int> { int operator()(edict_t* edict) const { return gamehelpers->IndexOfEdict(edict); } };
             template<> struct ConvertFuncSingle<CBaseEntity*, int> { int operator()(CBaseEntity* pEntity) const { return gamehelpers->ReferenceToIndex(gamehelpers->EntityToReference(pEntity)); } };
             template<> struct ConvertFuncSingle<IGamePlayer*, int> { int operator()(IGamePlayer* igp) const { return igp->GetIndex(); } };
             template<> struct ConvertFuncSingle<CBaseHandle, int> { int operator()(const CBaseHandle& handle) const { return gamehelpers->ReferenceToIndex(handle.ToInt() | (1 << 31)); } };
             template<> struct ConvertFuncSingle<edict_t*, IGamePlayer*> { IGamePlayer* operator()(edict_t* edict) const { return playerhelpers->GetGamePlayer(edict); } };
             template<> struct ConvertFuncSingle<int, IGamePlayer*> { IGamePlayer* operator()(int id) const { return playerhelpers->GetGamePlayer(id); } };
-            template<> struct ConvertFuncSingle<edict_t*, IServerUnknown*> { IServerUnknown* operator()(edict_t* edict) const { return edict->GetUnknown(); } };
+            template<> struct ConvertFuncSingle<edict_t*, IServerUnknown*> { IServerUnknown* operator()(edict_t* edict) const { return edict ? edict->GetUnknown() : nullptr; } };
             template<> struct ConvertFuncSingle<CBaseEntity*, IServerUnknown*> { IServerUnknown* operator()(CBaseEntity* pEntity) const { return reinterpret_cast<IServerUnknown*>(pEntity); } };
             template<> struct ConvertFuncSingle<int, CBaseHandle> { CBaseHandle operator()(int id) const { return CBaseHandle(gamehelpers->IndexToReference(id) & ~(1 << 31)); } };
-            template<> struct ConvertFuncSingle<IServerUnknown*, CBaseHandle> { const CBaseHandle& operator()(IServerUnknown* unknown) const { return unknown->GetRefEHandle(); } };
+            template<> struct ConvertFuncSingle<IServerUnknown*, CBaseHandle> { CBaseHandle operator()(IServerUnknown* unknown) const { return unknown ? unknown->GetRefEHandle() : CBaseHandle(); } };
 
             // use adapters
             template<> struct ConvertFuncSingle<edict_t*, CBaseEntity*> : AdapterFunc<edict_t*, IServerUnknown*, CBaseEntity*> {};
@@ -94,7 +95,7 @@ namespace sm {
         }
 
         template<class From, class To> struct ConvertFunc : detail::ConvertFuncSingle<From, To> {};
-        template<class To> struct Converter
+        template<EntType_c To> struct Converter
         {
             template<class InputType> To operator()(InputType&&in) const {
                 return ConvertFunc<typename std::decay<InputType>::type, To>()(std::forward<InputType>(in));
@@ -111,7 +112,7 @@ namespace sm {
         static_assert(ConverterUnitTest1<AllEntTypeList>::value);
 #endif
 
-        template<class TargetType> struct AutoEntity
+        template<EntType_c TargetType> struct AutoEntity
         {
             template<class InputType> AutoEntity(InputType&& in) : value(Converter<TargetType>()(std::forward<InputType>(in))) {}
             operator TargetType() const { return value; }

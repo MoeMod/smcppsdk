@@ -13,13 +13,13 @@ namespace sm {
 
         void CS_TerminateRound(float delay, CSRoundEndReason_e reason, bool blockhook = false);
 
-        void SwitchTeam(CGameRules *gamerules, CBaseEntity *pEntity, CSTeam_e iTeam);
-        void CS_SwitchTeam(CBaseEntity *pEntity, CSTeam_e iTeam);
+        void SwitchTeam(CGameRules *gamerules, CBasePlayer *pEntity, CSTeam_e iTeam);
+        void CS_SwitchTeam(CBasePlayer *pEntity, CSTeam_e iTeam);
 
-        void CS_RespawnPlayer(CBaseEntity *pEntity);
-        void CS_UpdateClientModel(CBaseEntity *pEntity);
+        void CS_RespawnPlayer(CBasePlayer *pEntity);
+        void CS_UpdateClientModel(CBasePlayer *pEntity);
 
-        void CS_DropWeapon(CBaseEntity *pEntity, CBaseCombatWeapon *pWeapon, bool toss);
+        void CS_DropWeapon(CBasePlayer *pEntity, CBaseCombatWeapon *pWeapon, bool toss);
 
         inline namespace forwards {
             extern EventDispatcher<Action(float&, CSRoundEndReason_e&)> CS_OnTerminateRound;

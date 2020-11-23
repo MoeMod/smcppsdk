@@ -1,7 +1,7 @@
 
 #include "extension.h"
 #include "sm/cstrike.h"
-#include <sm_argbuffer.h>
+#include "sm/call_helper.h"
 
 #include <extensions/IBinTools.h>
 #include <extensions/ISDKHooks.h>
@@ -40,23 +40,8 @@ namespace sm {
             reason++;
 #endif
 #ifndef _WIN32
-            PassInfo pass[4];
-            pass[0].flags = PASSFLAG_BYVAL;
-            pass[0].type = PassType_Float;
-            pass[0].size = sizeof(float);
-            pass[1].flags = PASSFLAG_BYVAL;
-            pass[1].type = PassType_Basic;
-            pass[1].size = sizeof(int);
-            pass[2].flags = PASSFLAG_BYVAL;
-            pass[2].type = PassType_Basic;
-            pass[2].size = sizeof(int);
-            pass[3].flags = PASSFLAG_BYVAL;
-            pass[3].type = PassType_Basic;
-            pass[3].size = sizeof(int);
-            static ICallWrapper *pWrapper = g_pBinTools->CreateCall(FindSig("TerminateRound"), CallConv_ThisCall, NULL, pass, 4);
-
-            ArgBuffer<void*, float, int, int, int> vstk(gamerules, delay, reason, 0, 0);
-            pWrapper->Execute(vstk, nullptr);
+            static MemFuncCaller<void (CGameRules::*)(float, int, int, int)> caller(g_pBinTools, FindSig("TerminateRound"));
+            return caller(gamerules, delay, reason, 0, 0);
 #else
             static void *addr = FindSig("TerminateRound");
 			__asm
@@ -77,27 +62,21 @@ namespace sm {
             return TerminateRound(static_cast<CGameRules *>(g_pSDKTools->GetGameRules()), delay, reason);
         }
 
-        void CS_RespawnPlayer(CBaseEntity *pEntity) {
-            static auto pWrapper = g_pBinTools->CreateCall(FindSig("RoundRespawn"), CallConv_ThisCall, NULL, NULL, 0);
-            pWrapper->Execute(&pEntity, NULL);
+        void CS_RespawnPlayer(CBasePlayer *pEntity) {
+            static MemFuncCaller<void (CBasePlayer::*)()> caller(g_pBinTools, FindSig("RoundRespawn"));
+            return caller(pEntity);
         }
 
-        void CS_UpdateClientModel(CBaseEntity *pEntity) {
-            static auto pWrapper = g_pBinTools->CreateCall(FindSig("SetModelFromClass"), CallConv_ThisCall, NULL, NULL, 0);
-            pWrapper->Execute(&pEntity, NULL);
+        void CS_UpdateClientModel(CBasePlayer *pEntity) {
+            static MemFuncCaller<void (CBasePlayer::*)()> caller(g_pBinTools, FindSig("SetModelFromClass"));
+            return caller(pEntity);
         }
 
-        void SwitchTeam(CGameRules *gamerules, CBaseEntity *pEntity, CSTeam_e team) {
+        void SwitchTeam(CGameRules *gamerules, CBasePlayer *pEntity, CSTeam_e team) {
 
 #ifndef _WIN32
-            PassInfo pass[1];
-            pass[0].flags = PASSFLAG_BYVAL;
-            pass[0].type = PassType_Basic;
-            pass[0].size = sizeof(int);
-            static ICallWrapper *pWrapper = g_pBinTools->CreateCall(FindSig("SwitchTeam"), CallConv_ThisCall, NULL, pass, 4);
-
-            ArgBuffer<CBaseEntity*, int> vstk(pEntity, team);
-            pWrapper->Execute(vstk, nullptr);
+            static MemFuncCaller<void (CBasePlayer::*)(int)> caller(g_pBinTools, FindSig("SwitchTeam"));
+            return caller(pEntity, team);
 #else
             static void *addr = FindSig("SwitchTeam");
 			__asm
@@ -110,14 +89,13 @@ namespace sm {
 #endif
         }
 
-        void CS_SwitchTeam(CBaseEntity *pEntity, CSTeam_e team) {
+        void CS_SwitchTeam(CBasePlayer *pEntity, CSTeam_e team) {
             return SwitchTeam(static_cast<CGameRules *>(g_pSDKTools->GetGameRules()), pEntity, team);
         }
 
-        void CS_DropWeapon(CBaseEntity *pEntity, CBaseCombatWeapon *pWeapon, bool toss) {
-            static auto pWrapper = g_pBinTools->CreateCall(FindSig("DropWeaponBB"), CallConv_ThisCall, NULL, NULL, 0);
-            ArgBuffer<CBaseEntity*, CBaseCombatWeapon*, bool> vstk(pEntity, pWeapon, toss);
-            pWrapper->Execute(vstk, NULL);
+        void CS_DropWeapon(CBasePlayer *pEntity, CBaseCombatWeapon *pWeapon, bool toss) {
+            static MemFuncCaller<void (CBasePlayer::*)(CBaseCombatWeapon*, bool)> caller(g_pBinTools, FindSig("DropWeaponBB"));
+            return caller(pEntity, pWeapon, toss);
         }
 
 #if SOURCE_ENGINE == SE_CSS

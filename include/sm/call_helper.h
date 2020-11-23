@@ -2,6 +2,7 @@
 
 #include <extensions/IBinTools.h>
 #include <sm_argbuffer.h>
+#include <concepts>
 
 namespace sm {
     inline namespace functions {
@@ -27,7 +28,7 @@ namespace sm {
                 return ret;
             }
 
-            template<> PassInfo MakePassInfo<void>()
+            template<> inline PassInfo MakePassInfo<void>()
             {
                 return MakePassInfo<void *>();
             }
@@ -38,12 +39,13 @@ namespace sm {
         template<class Fn> class VFuncCaller;
         template<class C, class Ret, class...Args> class VFuncCaller<Ret(C::*)(Args...)> {
         public:
-            VFuncCaller(IBinTools *bt, int offset, int vtblOffs = 0, int thisOffs = 0) : 
+        	template<class IBinToolsPtr = IBinTools*> requires std::convertible_to<typename std::pointer_traits<IBinToolsPtr>::element_type *, IBinTools *>
+            VFuncCaller(IBinToolsPtr bt, int offset, int vtblOffs = 0, int thisOffs = 0) :
                 m_pass{ detail::MakePassInfo<Args>()... }, 
                 m_passRet(detail::MakePassInfo<Ret>()),
                 m_pWrapper(bt->CreateVCall(offset, vtblOffs, thisOffs, std::is_void<Ret>::value ? nullptr : &m_passRet, m_pass, sizeof...(Args)))
             {}
-            Ret operator()(C* pthis, const Args&...args)
+            Ret operator()(C* pthis, const Args&...args) const
             {
                 ArgBuffer<void *, Args...> vstk(pthis, args...);
                 typename std::conditional<std::is_void<Ret>::value, int, Ret>::type ret;
@@ -51,7 +53,7 @@ namespace sm {
                 return Ret(ret);
             }
         protected:
-            PassInfo m_pass[sizeof...(Args)];
+            PassInfo m_pass[sizeof...(Args) + 1];
             PassInfo m_passRet;
             ICallWrapper* m_pWrapper;
         };
@@ -59,13 +61,14 @@ namespace sm {
         template<class Fn> class MemFuncCaller;
         template<class C, class Ret, class...Args> class MemFuncCaller<Ret(C::*)(Args...)> {
         public:
-            MemFuncCaller(IBinTools *bt, void *addr) : 
+            template<class IBinToolsPtr = IBinTools*> requires std::convertible_to<typename std::pointer_traits<IBinToolsPtr>::element_type *, IBinTools *>
+            MemFuncCaller(IBinToolsPtr bt, void *addr) :
                 m_pass{ detail::MakePassInfo<Args>()... }, 
                 m_passRet(detail::MakePassInfo<Ret>()),
                 m_pWrapper( bt->CreateCall(addr, CallConv_ThisCall, std::is_void<Ret>::value ? nullptr : &m_passRet, m_pass, sizeof...(Args)) )
             {}
 
-            Ret operator()(C *pthis, const Args&...args)
+            Ret operator()(C *pthis, const Args&...args) const
             {
                 ArgBuffer<void *, Args...> vstk(pthis, args...);
                 typename std::conditional<std::is_void<Ret>::value, int, Ret>::type ret;
@@ -73,7 +76,7 @@ namespace sm {
                 return Ret(ret);
             }
         protected:
-            PassInfo m_pass[sizeof...(Args)];
+            PassInfo m_pass[sizeof...(Args) + 1];
             PassInfo m_passRet;
             ICallWrapper* m_pWrapper;
         };
