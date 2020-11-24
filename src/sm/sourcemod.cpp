@@ -63,6 +63,8 @@ namespace sm {
             GET_V_IFACE_CURRENT(GetEngineFactory, icvar, ICvar, CVAR_INTERFACE_VERSION);
             GET_V_IFACE_CURRENT(GetEngineFactory, serverpluginhelpers, IServerPluginHelpers, INTERFACEVERSION_ISERVERPLUGINHELPERS);
 
+            sm::sdktools::detail::SDK_OnMetamodLoad(ismm, error, maxlen, late);
+
             return true;
         }
     }

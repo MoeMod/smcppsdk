@@ -1,3 +1,5 @@
+// convert all SM original API into this repo, if possible
+
 #pragma once
 
 #include <extensions/IBinTools.h>
@@ -5,17 +7,20 @@
 #include "sourcemod_types.h"
 #include "variant_t.h"
 #include "call_helper.h"
+#include <networkstringtabledefs.h>
 
 namespace sm {
     namespace sdktools {
         namespace detail {
             bool SDK_OnLoad(char* error, size_t maxlength, bool late);
             void SDK_OnUnload();
+            bool SDK_OnMetamodLoad(ISmmAPI* ismm, char* error, size_t maxlen, bool late);
         }
 
         int FindOffset(const char* name);
         extern IBinTools* g_pBinTools;
         extern IGameConfig* g_pGameConf;
+        extern INetworkStringTableContainer* netstringtables;
     	
         inline void RemovePlayerItem(CBasePlayer * player, CBaseCombatWeapon *pItem)
         {
@@ -72,6 +77,44 @@ namespace sm {
         {
             static VFuncCaller<void(CBaseEntity::*)(Vector, Vector, Vector)> caller(g_pBinTools, FindOffset("Teleport"));
             return caller(pEntity, newpos, newang, newVel);
+        }
+
+        inline bool LockStringTables(bool lock) {
+            return engine->LockNetworkStringTables(lock) ? 1 : 0;
+        }
+
+        inline int FindStringTable(std::string _Table) 
+        {
+            INetworkStringTable* pTable = netstringtables->FindTable(_Table.c_str());
+
+            if (!pTable)
+            {
+                return INVALID_STRING_TABLE;
+            }
+
+            return pTable->GetTableId();
+        }
+
+        inline bool AddToStringTable(TABLEID idx, std::string _AddString, std::string userdata = "", int length = -1) {
+            INetworkStringTable* pTable = netstringtables->GetTable(idx);
+            if (!pTable) smutils->LogError(myself, "Invalid string table index: %d", idx);
+
+#if SOURCE_ENGINE >= SE_ORANGEBOX
+            pTable->AddString(true, _AddString.c_str(), length, userdata.c_str());
+#else
+            pTable->AddString(true, length, userdata.c_str());
+#endif
+            return true;
+        }
+
+        inline void AddFileToDownloadsTable(std::string _FileName) {
+            static int table = INVALID_STRING_TABLE;
+            if (table == INVALID_STRING_TABLE) {
+                table = FindStringTable((std::string() + "downloadables"));
+            }
+            bool save = LockStringTables(false);
+            AddToStringTable(table, _FileName);
+            LockStringTables(save);
         }
     }
 }
