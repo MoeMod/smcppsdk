@@ -149,7 +149,7 @@ namespace sm {
         {
             INetworkStringTable* pTable = netstringtables->GetTable(idx);
             if (!pTable) smutils->LogError(myself, "Invalid string table index: %d", idx);
-            std::string value = (std::string() + pTable->GetString(stringIdx));
+            std::string value = (std::string() + *pTable->GetString(stringIdx));
             if (!value.size()) smutils->LogError(myself, "Invalid string index specified for table (index: %d) (table: \"%s\")", stringIdx, pTable->GetTableName());
             // HELP: NumBytes
             /*
@@ -170,16 +170,24 @@ namespace sm {
             return (!userdata) ? 0 : datalen;
         }
 
-        inline void GetStringTableData(TABLEID idx, int stringIdx) {
+        // HELP: There are some problems in this function.
+        // optimizate is required.
+        inline std::size_t GetStringTableData(TABLEID idx, int stringIdx, int maxlength) {
             INetworkStringTable* pTable = netstringtables->GetTable(idx);
             if (!pTable) smutils->LogError(myself, "Invalid string table index: %d", idx);
             if (stringIdx < 0 || stringIdx >= pTable->GetNumStrings())
                 smutils->LogError(myself, "Invalid string index specified for table (index %d) (table \"%s\")", stringIdx, pTable->GetTableName());
             int datalen = 0;
             std::string userdata = (std::string() + reinterpret_cast<const char*>(pTable->GetStringUserData(stringIdx, &datalen)));
-            int numBytes = std::min(numBytes, datalen);
-            // HELP: remaining
-            //if (userdata) std::memcpy(userdata.c_str(), userdata, numBytes);
+            std::size_t numBytes = std::min(maxlength, datalen);
+            void* addr = nullptr;
+            if (userdata.c_str()) std::memcpy(addr, userdata.c_str(), numBytes);
+            if (maxlength > 0) {
+                //reinterpret_cast<const char*>(addr[0]) = '\0';
+                numBytes = 0;
+            }
+            return numBytes;
+            
         }
 
         // HELP ME
