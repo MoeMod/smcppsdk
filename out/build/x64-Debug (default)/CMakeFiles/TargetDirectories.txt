@@ -1,0 +1,2 @@
+D:/workshop/.proj.vs/QuestSystem/smcppsdk/out/build/x64-Debug (default)/CMakeFiles/edit_cache.dir
+D:/workshop/.proj.vs/QuestSystem/smcppsdk/out/build/x64-Debug (default)/CMakeFiles/rebuild_cache.dir
