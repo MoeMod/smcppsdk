@@ -12,7 +12,7 @@ namespace sm {
         IBinTools *g_pBinTools = nullptr;
         IGameConfig *g_pGameConf = nullptr;
         INetworkStringTableContainer* netstringtables = nullptr;
-
+        IServerTools* servertools = nullptr;
         bool detail::SDK_OnLoad(char *error, size_t maxlength, bool late) {
             char conf_error[255];
             if (!gameconfs->LoadGameConfigFile("sdktools.games", &g_pGameConf, conf_error, sizeof(conf_error)))

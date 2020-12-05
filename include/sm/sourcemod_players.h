@@ -80,6 +80,21 @@ namespace sm{
             {
                 return pPlayer->IsInGame();
             }
+
+            inline bool IsFakeClient(AutoEntity<IGamePlayer*> pPlayer)
+            {
+                return pPlayer->IsFakeClient();
+            }
+
+            inline bool IsClientInKickQueue(AutoEntity<IGamePlayer*> pPlayer)
+            {
+                return pPlayer->IsInKickQueue();
+            }
+
+            inline bool IsClientSourceTV(AutoEntity<IGamePlayer*> pPlayer)
+            {
+                return pPlayer->IsSourceTV();
+            }
         }
     }
 }
