@@ -9,6 +9,10 @@
 #include "call_helper.h"
 #include <networkstringtabledefs.h>
 
+#if SOURCE_ENGINE >= SE_ORANGEBOX
+//#include 
+#endif
+
 namespace sm {
     namespace sdktools {
         namespace detail {
@@ -21,6 +25,7 @@ namespace sm {
         extern IBinTools* g_pBinTools;
         extern IGameConfig* g_pGameConf;
         extern INetworkStringTableContainer* netstringtables;
+        
     	
         inline void RemovePlayerItem(CBasePlayer * player, CBaseCombatWeapon *pItem)
         {
@@ -78,7 +83,7 @@ namespace sm {
             static VFuncCaller<void(CBaseEntity::*)(Vector, Vector, Vector)> caller(g_pBinTools, FindOffset("Teleport"));
             return caller(pEntity, newpos, newang, newVel);
         }
-
+#pragma region sdktools_stringtables
         inline bool LockStringTables(bool lock) {
             return engine->LockNetworkStringTables(lock) ? true : false;
         }
@@ -205,5 +210,24 @@ namespace sm {
             AddToStringTable(table, _FileName);
             LockStringTables(save);
         }
+#pragma endregion
+
+#pragma region sdktools_functions
+        inline CBaseEntity* CreateEntityByName(std::string classname, int forceEdictIndex = -1)
+        {
+            
+            if (!g_pSM->IsMapRunning()) throw std::runtime_error("CANNOT create entity when no map is running!");
+#if SOURCE_ENGINE >= SE_ORANGEBOX
+            
+#if SOURCE_ENGINE != SE_CSGO
+#else
+#endif
+
+#else
+
+#endif
+            return nullptr;
+        }
+#pragma endregion
     }
 }
