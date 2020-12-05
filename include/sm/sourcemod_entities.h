@@ -13,6 +13,31 @@ namespace sm {
 		{
 			return gamehelpers->GetEntityClassname(ed);
 		}
+		//native bool GetEntityNetClass(int edict, char[] clsname, int maxlength);
+		inline const char* GetEntityNetClass(edict_t* edict) {
+			CBaseEntity* pEntity = sm::ent_cast<CBaseEntity*>(edict);
+			IServerUnknown* unk = (IServerUnknown*)pEntity;
+			if (!pEntity) throw std::runtime_error("Your edict called is invalid.");
+
+			IServerNetworkable* net = unk->GetNetworkable();
+			if (!net) throw std::runtime_error("This edict what you have called is not networkable.");
+			ServerClass* serverclass = net->GetServerClass();
+			return serverclass->GetName();
+		}
+		inline int GetEntSendPropOffs(CBaseEntity* entity, const char* prop, bool actual = false)
+		{
+			std::string temp = GetEntityNetClass(sm::ent_cast<edict_t*>(entity));
+			if (!temp.size()) return -1;
+			sm_sendprop_info_t info = {};
+			int local = -1;
+			int offset = 0;
+			if (!gamehelpers->FindSendPropInfo(temp.c_str(), prop, &info))
+				throw std::runtime_error("Unable to find the send prop: " + (std::string() + temp + prop));
+			local = info.prop->GetOffset();
+			offset = info.actual_offset;
+
+			return actual ? offset : local;
+		}
 
 		template<class T>
 		T &EntData(AutoEntity<CBaseEntity *> pEntity, unsigned short offset, int size=sizeof(T))
