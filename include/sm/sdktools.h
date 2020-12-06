@@ -27,37 +27,23 @@ namespace sm {
         extern IGameConfig* g_pGameConf;
         extern INetworkStringTableContainer* netstringtables;
         extern IServerTools* servertools;
-        
-        inline void RemovePlayerItem(CBasePlayer * player, CBaseCombatWeapon *pItem)
-        {
-            static VFuncCaller<void(CBasePlayer::*)(CBaseCombatWeapon*)> caller(g_pBinTools, FindOffset("RemovePlayerItem"));
-            return caller(player, pItem);
-        }
-        
-        inline CBaseEntity *GivePlayerItem(CBasePlayer *player, const char *item, int iSubType = 0)
-        {
-            static VFuncCaller<CBaseEntity* (CBasePlayer::*)(const char*, int, CEconItemView*, bool, CBaseEntity*)> caller(g_pBinTools, FindOffset("GiveNamedItem"));
-            return caller(player, item, iSubType, nullptr, true, nullptr);
-        }
-        
-        inline void SetLightStyle(int style, const char *value)
+
+#pragma region sdktools_client
+        //InactivateClient
+        //ReconnectClient
+#pragma endregion
+
+#pragma region sdktools_engine
+        //GetClientEyePosition
+        //SetClientViewEntity
+        inline void SetLightStyle(int style, const char* value)
         {
             return engine->LightStyle(style, value);
         }
-        
-        inline int GivePlayerAmmo(CBasePlayer * player, int amount, int ammotype, bool suppressSound=false)
-        {
-            static VFuncCaller<int(CBasePlayer::*)(int, int, bool)> caller(g_pBinTools, FindOffset("GivePlayerAmmo"));
-            return caller(player, amount, ammotype, suppressSound);
-        }
-        
-        inline void SetEntityModel(CBaseEntity *entity, const char *model)
-        {
-            static VFuncCaller<void(CBaseEntity::*)(const char*)> caller(g_pBinTools, FindOffset("SetEntityModel"));
-            return caller(entity, model);
-        }
-        
-        inline bool AcceptEntityInput(CBaseEntity * dest, const char *input, CBaseEntity *activator=nullptr, CBaseEntity *pcaller=nullptr, int outputid=0)
+#pragma endregion
+
+#pragma region sdktools_entinput
+        inline bool AcceptEntityInput(CBaseEntity* dest, const char* input, CBaseEntity* activator = nullptr, CBaseEntity* pcaller = nullptr, int outputid = 0)
         {
             variant_t value{};
             value.eVal = INVALID_EHANDLE_INDEX;
@@ -66,24 +52,125 @@ namespace sm {
             static VFuncCaller<bool(CBaseEntity::*)(const char*, CBaseEntity*, CBaseEntity*, variant_t, int)> caller(g_pBinTools, FindOffset("AcceptInput"));
             return caller(dest, input, activator, pcaller, value, outputid);
         }
-        
-        inline void ForcePlayerSuicide(CBasePlayer * player, bool bExplode = false, bool bForce = false)
-        {
-            static VFuncCaller<void(CBasePlayer::*)(bool, bool)> caller(g_pBinTools, FindOffset("CommitSuicide"));
-            return caller(player, bExplode, bForce);
-        }
-        
-        inline void EquipPlayerWeapon(CBasePlayer * player, CBaseEntity *entity)
-        {
-            static VFuncCaller<void(CBasePlayer::*)(CBaseEntity*)> caller(g_pBinTools, FindOffset("WeaponEquip"));
-            return caller(player, entity);
-        }
+#pragma endregion
 
+#pragma region sdktools_entoutput
+        //FireEntityOutput
+        //HookEntityOutput
+        //HookSingleEntityOutput
+        //UnhookEntityOutput
+        //UnhookSingleEntityOutput
+#pragma endregion
+
+#pragma region sdktools_functions
+        inline void RemovePlayerItem(CBasePlayer* player, CBaseCombatWeapon* pItem)
+        {
+            static VFuncCaller<void(CBasePlayer::*)(CBaseCombatWeapon*)> caller(g_pBinTools, FindOffset("RemovePlayerItem"));
+            return caller(player, pItem);
+        }
+        inline CBaseEntity* GivePlayerItem(CBasePlayer* player, const char* item, int iSubType = 0)
+        {
+            static VFuncCaller<CBaseEntity* (CBasePlayer::*)(const char*, int, CEconItemView*, bool, CBaseEntity*)> caller(g_pBinTools, FindOffset("GiveNamedItem"));
+            return caller(player, item, iSubType, nullptr, true, nullptr);
+        }
+        inline CBaseEntity* CreateEntityByName(std::string classname, int forceEdictIndex = -1)
+        {
+            if (!g_pSM->IsMapRunning()) throw std::runtime_error("CANNOT create entity when no map is running!");
+#if SOURCE_ENGINE >= SE_ORANGEBOX
+#if SOURCE_ENGINE != SE_CSGO
+            CBaseEntity* pEntity = (CBaseEntity*)servertools->CreateEntityByName(classname.c_str());
+#else // SE==CSGO
+            CBaseEntity* pEntity = (CBaseEntity*)servertools->CreateItemEntityByName(classname.c_str());
+            if (!pEntity)
+            {
+                pEntity = (CBaseEntity*)servertools->CreateEntityByName(classname.c_str());
+            }
+#endif //endif::SE!=CSGO
+            return pEntity;
+#else // SE< ORANGEBOX
+            throw std::runtime_error("This function is incomplete. DO NOT USE IT!");
+            return nullptr;
+#endif // endif::SE>=SE_ORANGEBOX
+        }
+        template<class T>
+        inline bool DispatchKeyValue(CBaseEntity* pEntity, std::string keyName, T Value)
+        {
+            if (!pEntity) throw std::runtime_error("Called entity is invalid.");
+            return (servertools->SetKeyValue(pEntity, keyName.c_str(), Value) ? true : false);
+
+            // TODO: When SE_VERSION < ORANGEBOX: VFuncCaller
+        }
+        inline void DispatchSpawn(CBaseEntity* pEntity)
+        {
+            if (!pEntity) throw std::runtime_error("The entity what you want to spawn is invalid.");
+
+            servertools->DispatchSpawn(pEntity);
+
+            // TODO: When SE_VERSION < ORANGEBOX: VFuncCaller
+        }
         inline void TeleportEntity(CBaseEntity* pEntity, Vector newpos, Vector newang, Vector newVel)
         {
             static VFuncCaller<void(CBaseEntity::*)(Vector, Vector, Vector)> caller(g_pBinTools, FindOffset("Teleport"));
             return caller(pEntity, newpos, newang, newVel);
         }
+        inline void ActivateEntity(CBaseEntity* entity)
+        {
+            static VFuncCaller<void(CBaseEntity::*)()> caller(g_pBinTools, FindOffset("Activate"));
+            return caller(entity);
+        }
+        inline void SetEntityModel(CBaseEntity* entity, const char* model)
+        {
+            static VFuncCaller<void(CBaseEntity::*)(const char*)> caller(g_pBinTools, FindOffset("SetEntityModel"));
+            return caller(entity, model);
+        }
+        inline void EquipPlayerWeapon(CBasePlayer* player, CBaseEntity* entity)
+        {
+            static VFuncCaller<void(CBasePlayer::*)(CBaseEntity*)> caller(g_pBinTools, FindOffset("WeaponEquip"));
+            return caller(player, entity);
+        }
+        inline void ForcePlayerSuicide(CBasePlayer* player, bool bExplode = false, bool bForce = false)
+        {
+            static VFuncCaller<void(CBasePlayer::*)(bool, bool)> caller(g_pBinTools, FindOffset("CommitSuicide"));
+            return caller(player, bExplode, bForce);
+        }
+        inline int GivePlayerAmmo(CBasePlayer* player, int amount, int ammotype, bool suppressSound = false)
+        {
+            static VFuncCaller<int(CBasePlayer::*)(int, int, bool)> caller(g_pBinTools, FindOffset("GivePlayerAmmo"));
+            return caller(player, amount, ammotype, suppressSound);
+        }
+        //    GetPlayerWeaponSlot
+        //    IgniteEntity
+        //    ExtinguishEntity
+        //    SlapPlayer
+        //    FindEntityByClassname
+        //    GetClientEyeAngles
+        //    GetClientAimTarget
+        //    GetTeamCount
+        //    GetTeamName
+        //    GetTeamScore
+        //    SetTeamScore
+        //    GetTeamClientCount
+        //    GetTeamEntity
+        //    GetPlayerDecalFile
+        //    GetPlayerJingleFile
+        //    GetServerNetStats
+        //    SetClientInfo
+        //    SetClientName
+#pragma endregion
+#pragma region sdktools_gamerules
+        //GameRules_GetProp
+        //    GameRules_SetProp
+        //    GameRules_GetPropFloat
+        //    GameRules_SetPropFloat
+        //    GameRules_GetPropEnt
+        //    GameRules_SetPropEnt
+        //    GameRules_GetPropVector
+        //    GameRules_SetPropVector
+        //    GameRules_GetPropString
+        //    GameRules_SetPropString
+        //    GameRules_GetRoundState
+#pragma endregion
+
 #pragma region sdktools_stringtables
         inline bool LockStringTables(bool lock) {
             return engine->LockNetworkStringTables(lock) ? true : false;
@@ -212,50 +299,61 @@ namespace sm {
             LockStringTables(save);
         }
 #pragma endregion
+#pragma region sdktools_varient_t
+        inline void SetVariant(bool Val)
+        {
+            variant_t* v{};
 
-#pragma region sdktools_functions
-        //CreateEntityByName(const char[] classname, int ForceEdictIndex=-1);
-        inline CBaseEntity* CreateEntityByName(std::string classname, int forceEdictIndex = -1)
-        {
-            if (!g_pSM->IsMapRunning()) throw std::runtime_error("CANNOT create entity when no map is running!");
-#if SOURCE_ENGINE >= SE_ORANGEBOX
-#if SOURCE_ENGINE != SE_CSGO
-            CBaseEntity* pEntity = (CBaseEntity*)servertools->CreateEntityByName(classname.c_str());
-#else // SE==CSGO
-            CBaseEntity* pEntity = (CBaseEntity*)servertools->CreateItemEntityByName(classname.c_str());
-            if (!pEntity)
-            {
-                pEntity = (CBaseEntity*)servertools->CreateEntityByName(classname.c_str());
-            }
-#endif //endif::SE!=CSGO
-            return pEntity;
-#else // SE< ORANGEBOX
-            throw std::runtime_error("This function is incomplete. DO NOT USE IT!");
-            return nullptr;
-#endif // endif::SE>=SE_ORANGEBOX
+            v->bVal = Val;
+            v->fieldType = FIELD_BOOLEAN;
         }
-        
-        // native bool DispatchKeyValue(int entity, const char[] keyName, const char[] value);
-        template<class T>
-        inline bool DispatchKeyValue(CBaseEntity* pEntity, std::string keyName, T Value)
+        inline void SetVariant(int Val)
         {
-            if (!pEntity) throw std::runtime_error("Called entity is invalid.");
-            return (servertools->SetKeyValue(pEntity, keyName.c_str(), Value) ? true : false);
+            variant_t* v{};
+            v->iVal = Val;
+            v->fieldType = FIELD_INTEGER;
+        }
+        inline void SetVariant(std::string str)
+        {
+            variant_t* v{};
+            v->iszVal = MAKE_STRING(str.c_str());
+            v->fieldType = FIELD_STRING;
+        }
+        inline void SetVariant(float val)
+        {
+            variant_t* v{};
+            v->flVal = val;
+            v->fieldType = FIELD_FLOAT;
+        }
+        // true=PosVec, false = vec
+        inline void SetVariant(Vector vec, bool IsPos = false)
+        {
+            variant_t* v{};
+            v->vecVal[0] = vec.x;
+            v->vecVal[1] = vec.y;
+            v->vecVal[2] = vec.z;
+            v->fieldType = IsPos ? FIELD_POSITION_VECTOR : FIELD_VECTOR;
             
-            // TODO: When SE_VERSION < ORANGEBOX: VFuncCaller
-        }
 
-        //native bool DispatchSpawn(int entity);
-        inline void DispatchSpawn(CBaseEntity* pEntity)
+        }
+        inline void SetVariant(Color color)
         {
-            if (!pEntity) throw std::runtime_error("The entity what you want to spawn is invalid.");
+            variant_t* v{};
+            v->rgbaVal.r = color.r();
+            v->rgbaVal.g = color.g();
+            v->rgbaVal.b = color.b();
+            v->rgbaVal.a = color.a();
 
-            servertools->DispatchSpawn(pEntity);
-
-            // TODO: When SE_VERSION < ORANGEBOX: VFuncCaller
+            v->fieldType = FIELD_COLOR32;
         }
-
-
+        inline void SetVariant(CBaseEntity* entity)
+        {
+            variant_t* v{};
+            CBaseHandle handle;
+            handle = reinterpret_cast<IHandleEntity*>(entity)->GetRefEHandle();
+            v->eVal = (unsigned long)(handle.ToInt());
+            v->fieldType = FIELD_EHANDLE;
+        }
 #pragma endregion
     }
 }

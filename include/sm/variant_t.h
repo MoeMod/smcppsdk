@@ -8,7 +8,7 @@ namespace sm {
     class variant_t
     {
     public:
-        // float[3] = 24byte
+        // float[3] = 12U
         // CBaseHandle
         union
         {
