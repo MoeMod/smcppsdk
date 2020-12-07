@@ -10,6 +10,7 @@
 #include <networkstringtabledefs.h>
 #include <stdexcept>
 #include <cstring>
+#include <string_view>
 
 #if SOURCE_ENGINE >= SE_ORANGEBOX
 #include <toolframework/itoolentity.h>
@@ -177,9 +178,9 @@ namespace sm {
             return engine->LockNetworkStringTables(lock) ? true : false;
         }
 
-        inline int FindStringTable(std::string _Table) 
+        inline int FindStringTable(const char *_Table)
         {
-            INetworkStringTable* pTable = netstringtables->FindTable(_Table.c_str());
+            INetworkStringTable* pTable = netstringtables->FindTable(_Table);
 
             if (!pTable)
             {
@@ -189,14 +190,14 @@ namespace sm {
             return pTable->GetTableId();
         }
 
-        inline bool AddToStringTable(TABLEID idx, std::string _AddString, std::string userdata = "", int length = -1) {
+        inline bool AddToStringTable(TABLEID idx, const char *_AddString, const char *userdata = "", int length = -1) {
             INetworkStringTable* pTable = netstringtables->GetTable(idx);
             if (!pTable) smutils->LogError(myself, "Invalid string table index: %d", idx);
 
 #if SOURCE_ENGINE >= SE_ORANGEBOX
-            pTable->AddString(true, _AddString.c_str(), length, userdata.c_str());
+            pTable->AddString(true, _AddString, length, userdata);
 #else
-            pTable->AddString(true, length, userdata.c_str());
+            pTable->AddString(true, length, userdata);
 #endif
             return true;
         }
@@ -215,21 +216,18 @@ namespace sm {
             return pTable->GetMaxStrings();
         }
 
-        inline void GetStringTableName(TABLEID idx) {
+        // native int GetStringTableName(int tableidx, char[] name, int maxlength);
+        inline const char *GetStringTableNameSz(TABLEID idx) {
             INetworkStringTable* pTable = netstringtables->GetTable(idx);
             if (!pTable) smutils->LogError(myself, "Invalid string table index: %d", idx);
-            // HELP: Gets a suitable return.
-            /*size_t numBytes;
-
-            if (!pTable)
-            {
-                return pContext->ThrowNativeError("Invalid string table index %d", idx);
-            }
-
-            pContext->StringToLocalUTF8(params[2], params[3], pTable->GetTableName(), &numBytes);
-
-            return numBytes;*/
-            //return (std::string() + pTable->GetTableName());
+            return pTable->GetTableName();
+        }
+        inline std::size_t GetStringTableName(TABLEID idx, char *name = nullptr, std::size_t maxlength = 0) {
+            const char *src = GetStringTableNameSz(idx);
+            auto size = std::strlen(src);
+            std::size_t numBytes = maxlength ? std::min<std::size_t>(size, maxlength) : size;
+            if (name) std::strncpy(name, src, numBytes);
+            return numBytes;
         }
 
         inline int FindStringIndex(TABLEID idx, std::string _Str) {
@@ -239,20 +237,30 @@ namespace sm {
             return (strIndex == INVALID_STRING_INDEX) ? -1 : strIndex;
         }
 
-        inline const char *ReadStringTable(TABLEID idx, int stringIdx)
+        // native int ReadStringTable(int tableidx, int stringidx, char[] str, int maxlength);
+        inline const char *ReadStringTableSz(TABLEID idx, int stringIdx)
         {
             INetworkStringTable* pTable = netstringtables->GetTable(idx);
             if (!pTable) smutils->LogError(myself, "Invalid string table index: %d", idx);
-            return pTable ? pTable->GetString(stringIdx) : nullptr;
+            return pTable->GetString(stringIdx);
         }
         inline std::string ReadStringTableStr(TABLEID idx, int stringIdx)
         {
-            return ReadStringTable(idx, stringIdx);
+            return ReadStringTableSz(idx, stringIdx);
         }
         inline std::string_view ReadStringTableSv(TABLEID idx, int stringIdx)
         {
-            const char *str = ReadStringTable(idx, stringIdx);
-            return std::string_view(str, str + std::strlen(str));
+            const char *str = ReadStringTableSz(idx, stringIdx);
+            return std::string_view(str, std::strlen(str));
+        }
+        inline std::size_t ReadStringTable(TABLEID idx, int stringIdx, char* str = nullptr, std::size_t maxlength = 0)
+        {
+            std::string_view sv = ReadStringTableSv(idx, stringIdx);
+            const char *src = sv.data();
+            auto size = sv.size();
+            auto numBytes = maxlength ? std::min<std::size_t>(size, maxlength) : size;
+            if (str) std::strncpy(str, src, numBytes);
+            return numBytes;
         }
         //native int GetStringTableDataLength(int tableidx, int stringidx);
         inline int GetStringTableDataLength(TABLEID idx, int stringIdx)
@@ -266,36 +274,41 @@ namespace sm {
             return (!userdata) ? 0 : datalen;
         }
 
-        // HELP: There are some problems in this function.
-        // optimizate is required.
-        inline std::size_t GetStringTableData(TABLEID idx, int stringIdx, int maxlength) {
+        // native int GetStringTableData(int tableidx, int stringidx, char[] userdata, int maxlength);
+        inline std::string_view GetStringTableDataSv(TABLEID idx, int stringIdx)
+        {
             INetworkStringTable* pTable = netstringtables->GetTable(idx);
             if (!pTable) smutils->LogError(myself, "Invalid string table index: %d", idx);
             if (stringIdx < 0 || stringIdx >= pTable->GetNumStrings())
                 smutils->LogError(myself, "Invalid string index specified for table (index %d) (table \"%s\")", stringIdx, pTable->GetTableName());
             int datalen = 0;
-            std::string userdata = (std::string() + reinterpret_cast<const char*>(pTable->GetStringUserData(stringIdx, &datalen)));
-            std::size_t numBytes = std::min(maxlength, datalen);
-            void* addr = nullptr;
-            if (userdata.c_str()) std::memcpy(addr, userdata.c_str(), numBytes);
-            if (maxlength > 0) {
-                //reinterpret_cast<const char*>(addr[0]) = '\0';
-                numBytes = 0;
-            }
+            const char* userdata = reinterpret_cast<const char*>(pTable->GetStringUserData(stringIdx, &datalen));
+            return std::string_view(userdata, datalen);
+        }
+        inline std::size_t GetStringTableData(TABLEID idx, int stringIdx, char *userdata = nullptr, std::size_t maxlength = 0) {
+            std::string_view sv = GetStringTableDataSv(idx, stringIdx);
+            const char *src = sv.data();
+            auto size = sv.size();
+            auto numBytes = maxlength ? std::min<std::size_t>(size, maxlength) : size;
+            if (userdata) std::strncpy(userdata, src, numBytes);
             return numBytes;
-            
+        }
+        inline std::string GetStringTableDataStr(TABLEID idx, int stringIdx)
+        {
+            return std::string(GetStringTableDataSv(idx, stringIdx));
         }
 
-        // HELP ME
-        inline void SetStringTableData(TABLEID idx) {
+        // native int SetStringTableData(int tableidx, int stringidx, const char[] userdata, int length);
+        inline void SetStringTableData(TABLEID idx, int stringIdx, const char *userdata, int length) {
             INetworkStringTable* pTable = netstringtables->GetTable(idx);
             if (!pTable) smutils->LogError(myself, "Invalid string table index: %d", idx);
+            pTable->SetStringUserData(stringIdx, length, userdata);
         }
 
-        inline void AddFileToDownloadsTable(std::string _FileName) {
+        inline void AddFileToDownloadsTable(const char *_FileName) {
             static int table = INVALID_STRING_TABLE;
             if (table == INVALID_STRING_TABLE) {
-                table = FindStringTable((std::string() + "downloadables"));
+                table = FindStringTable("downloadables");
             }
             bool save = LockStringTables(false);
             AddToStringTable(table, _FileName);
@@ -317,10 +330,10 @@ namespace sm {
             v.iVal = Val;
             v.fieldType = FIELD_INTEGER;
         }
-        inline void SetVariant(std::string &buffer)
+        inline void SetVariant(const char *buffer)
         {
             variant_t v{};
-            v.iszVal = MAKE_STRING(buffer.c_str());
+            v.iszVal = MAKE_STRING(buffer);
             v.fieldType = FIELD_STRING;
         }
         inline void SetVariant(float val)
@@ -340,11 +353,7 @@ namespace sm {
         }
         inline void SetVariant(Color color)
         {
-            variant_t v{};
-            v.rgbaVal.r = color.r();
-            v.rgbaVal.g = color.g();
-            v.rgbaVal.b = color.b();
-            v.rgbaVal.a = color.a();
+            variant_t v{ .rgbaVal = color.ToColor32() };
             v.fieldType = FIELD_COLOR32;
         }
         inline void SetVariant(CBaseEntity* entity)
