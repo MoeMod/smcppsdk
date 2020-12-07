@@ -37,7 +37,9 @@ namespace sm {
         bool detail::SDK_OnMetamodLoad(ISmmAPI* ismm, char* error, size_t maxlen, bool late)
         {
             GET_V_IFACE_ANY(GetEngineFactory, netstringtables, INetworkStringTableContainer, INTERFACENAME_NETWORKSTRINGTABLESERVER);
-            
+#if SOURCE_ENGINE >= SE_ORANGEBOX
+            GET_V_IFACE_ANY(GetServerFactory, servertools, IServerTools, VSERVERTOOLS_INTERFACE_VERSION);
+#endif
             return true;
         }
     }
