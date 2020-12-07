@@ -75,25 +75,28 @@ namespace sm {
             static VFuncCaller<CBaseEntity* (CBasePlayer::*)(const char*, int, CEconItemView*, bool, CBaseEntity*)> caller(g_pBinTools, FindOffset("GiveNamedItem"));
             return caller(player, item, iSubType, nullptr, true, nullptr);
         }
-        inline CBaseEntity* CreateEntityByName(std::string classname, int forceEdictIndex = -1)
-        {
-            if (!g_pSM->IsMapRunning()) throw std::runtime_error("CANNOT create entity when no map is running!");
 #if SOURCE_ENGINE >= SE_ORANGEBOX
+        inline CBaseEntity* CreateEntityByName(const char* classname)
+        {
+            if (!g_pSM->IsMapRunning()) throw std::runtime_error("CANNOT create new entity when no map is running!");
 #if SOURCE_ENGINE != SE_CSGO
-            CBaseEntity* pEntity = (CBaseEntity*)servertools->CreateEntityByName(classname.c_str());
-#else // SE==CSGO
-            CBaseEntity* pEntity = (CBaseEntity*)servertools->CreateItemEntityByName(classname.c_str());
+            CBaseEntity* pEntity = (CBaseEntity*)servertools->CreateEntityByName(classname);
+#else
+            CBaseEntity* pEntity = (CBaseEntity*)servertools->CreateItemEntityByName(classname);
+
             if (!pEntity)
             {
-                pEntity = (CBaseEntity*)servertools->CreateEntityByName(classname.c_str());
+                pEntity = (CBaseEntity*)servertools->CreateEntityByName(classname);
             }
-#endif //endif::SE!=CSGO
+#endif
             return pEntity;
-#else // SE< ORANGEBOX
-            throw std::runtime_error("This function is incomplete. DO NOT USE IT!");
-            return nullptr;
-#endif // endif::SE>=SE_ORANGEBOX
         }
+#else
+        inline CBaseEntity* CreateEntityByName(const char* classname, int forceEdictIndex = -1)
+        {
+            if (!g_pSM->IsMapRunning()) throw std::runtime_error("CANNOT create new entity when no map is running!");
+        }
+#endif
         template<class T>
         inline bool DispatchKeyValue(CBaseEntity* pEntity, std::string keyName, T Value)
         {
