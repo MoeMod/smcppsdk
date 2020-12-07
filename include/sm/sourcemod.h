@@ -10,6 +10,7 @@ namespace sm {
         extern ICvar *icvar;
         extern IServerPluginHelpers* serverpluginhelpers;
         extern IGameConfig* g_pGameConf;
+        extern IFileSystem* valvefs;
     }
 };
 
@@ -22,3 +23,4 @@ namespace sm {
 #include "sourcemod_functions.h"
 #include "sourcemod_entities.h"
 #include "sourcemod_players.h"
+#include "sourcemod_filesystem.h"
