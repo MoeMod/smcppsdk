@@ -302,57 +302,56 @@ namespace sm {
 #pragma region sdktools_varient_t
         inline void SetVariant(bool Val)
         {
-            variant_t* v{};
+            variant_t v{};
 
-            v->bVal = Val;
-            v->fieldType = FIELD_BOOLEAN;
+            v.bVal = Val;
+            v.fieldType = FIELD_BOOLEAN;
         }
         inline void SetVariant(int Val)
         {
-            variant_t* v{};
-            v->iVal = Val;
-            v->fieldType = FIELD_INTEGER;
+            variant_t v{};
+
+            v.iVal = Val;
+            v.fieldType = FIELD_INTEGER;
         }
-        inline void SetVariant(std::string str)
+        inline void SetVariant(std::string &buffer)
         {
-            variant_t* v{};
-            v->iszVal = MAKE_STRING(str.c_str());
-            v->fieldType = FIELD_STRING;
+            variant_t v{};
+            v.iszVal = MAKE_STRING(buffer.c_str());
+            v.fieldType = FIELD_STRING;
         }
         inline void SetVariant(float val)
         {
-            variant_t* v{};
-            v->flVal = val;
-            v->fieldType = FIELD_FLOAT;
+            variant_t v{};
+            v.flVal = val;
+            v.fieldType = FIELD_FLOAT;
         }
         // true=PosVec, false = vec
         inline void SetVariant(Vector vec, bool IsPos = false)
         {
-            variant_t* v{};
-            v->vecVal[0] = vec.x;
-            v->vecVal[1] = vec.y;
-            v->vecVal[2] = vec.z;
-            v->fieldType = IsPos ? FIELD_POSITION_VECTOR : FIELD_VECTOR;
-            
-
+            variant_t v{};
+            v.vecVal[0] = vec.x;
+            v.vecVal[1] = vec.y;
+            v.vecVal[2] = vec.z;
+            v.fieldType = IsPos ? FIELD_POSITION_VECTOR : FIELD_VECTOR;
         }
         inline void SetVariant(Color color)
         {
-            variant_t* v{};
-            v->rgbaVal.r = color.r();
-            v->rgbaVal.g = color.g();
-            v->rgbaVal.b = color.b();
-            v->rgbaVal.a = color.a();
-
-            v->fieldType = FIELD_COLOR32;
+            variant_t v{};
+            v.rgbaVal.r = color.r();
+            v.rgbaVal.g = color.g();
+            v.rgbaVal.b = color.b();
+            v.rgbaVal.a = color.a();
+            v.fieldType = FIELD_COLOR32;
         }
         inline void SetVariant(CBaseEntity* entity)
         {
-            variant_t* v{};
+            variant_t v{};
             CBaseHandle handle;
             handle = reinterpret_cast<IHandleEntity*>(entity)->GetRefEHandle();
-            v->eVal = (unsigned long)(handle.ToInt());
-            v->fieldType = FIELD_EHANDLE;
+
+            v.eVal = (unsigned long)(handle.ToInt());
+            v.fieldType = FIELD_EHANDLE;
         }
 #pragma endregion
     }
