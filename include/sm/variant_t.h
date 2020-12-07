@@ -23,5 +23,8 @@ namespace sm {
         CBaseHandle eVal; // unsigned long
         fieldtype_t fieldType;
     };
+
+#ifdef _WIN32
     static_assert(sizeof(variant_t) == 20);
+#endif
 }

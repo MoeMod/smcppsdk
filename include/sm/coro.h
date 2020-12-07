@@ -4,6 +4,9 @@
 #if __has_include(<experimental/coroutine>)
 #include <experimental/coroutine>
 #endif
+#if __has_include(<coroutine>)
+#include <coroutine>
+#endif
 
 #include <concepts>
 
@@ -16,6 +19,10 @@ namespace sm {
 			using std::experimental::coroutine_handle;
 			using std::experimental::suspend_always;
 			using std::experimental::suspend_never;
+#elif __has_include(<coroutine>)
+			using std::coroutine_handle;
+			using std::suspend_always;
+			using std::suspend_never;
 #else
 #error "no coroutine lib support found"
 #endif
@@ -38,7 +45,7 @@ namespace sm {
 			return AwaitableResult{ std::forward<Fn>(fn) };
 		}
 
-		auto CreateTimer(float interval)
+		inline auto CreateTimer(float interval)
 		{
 			return CreateAwaitable([interval](auto f) { sm::CreateTimer(interval, f); });
 		}

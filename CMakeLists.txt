@@ -23,5 +23,8 @@ target_include_directories(smcppsdk INTERFACE
     ${HL2SDK_PATH}/public/game/shared
 )
 
+if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
+    target_compile_options(smcppsdk INTERFACE -fcoroutines)
+endif()
 target_link_libraries(smcppsdk INTERFACE smsdk_ext)
 target_link_libraries(smcppsdk INTERFACE CDetour hl2sdk_protobuf_csgo)

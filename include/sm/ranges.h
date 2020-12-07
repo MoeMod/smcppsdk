@@ -11,7 +11,7 @@ namespace sm {
 		namespace detail {
 			template<class T, T...I> constexpr auto IntegerSequenceView(std::integer_sequence<T, I...>)
 			{
-				static constexpr std::array<T, sizeof...(I)> arr = { I... };
+				constexpr std::array<T, sizeof...(I)> arr = { I... };
 				return std::views::all(arr);
 			}
 

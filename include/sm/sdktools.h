@@ -9,6 +9,7 @@
 #include "call_helper.h"
 #include <networkstringtabledefs.h>
 #include <stdexcept>
+#include <cstring>
 
 #if SOURCE_ENGINE >= SE_ORANGEBOX
 #include <toolframework/itoolentity.h>
@@ -238,18 +239,20 @@ namespace sm {
             return (strIndex == INVALID_STRING_INDEX) ? -1 : strIndex;
         }
 
-        inline int ReadStringTable(TABLEID idx, int stringIdx)
+        inline const char *ReadStringTable(TABLEID idx, int stringIdx)
         {
             INetworkStringTable* pTable = netstringtables->GetTable(idx);
             if (!pTable) smutils->LogError(myself, "Invalid string table index: %d", idx);
-            std::string value = (std::string() + *pTable->GetString(stringIdx));
-            if (!value.size()) smutils->LogError(myself, "Invalid string index specified for table (index: %d) (table: \"%s\")", stringIdx, pTable->GetTableName());
-            // HELP: NumBytes
-            /*
-            pContext->StringToLocalUTF8(params[3], params[4], value, &numBytes);
-
-            return numBytes;
-            */
+            return pTable ? pTable->GetString(stringIdx) : nullptr;
+        }
+        inline std::string ReadStringTableStr(TABLEID idx, int stringIdx)
+        {
+            return ReadStringTable(idx, stringIdx);
+        }
+        inline std::string_view ReadStringTableSv(TABLEID idx, int stringIdx)
+        {
+            const char *str = ReadStringTable(idx, stringIdx);
+            return std::string_view(str, str + std::strlen(str));
         }
         //native int GetStringTableDataLength(int tableidx, int stringidx);
         inline int GetStringTableDataLength(TABLEID idx, int stringIdx)

@@ -17,7 +17,7 @@ namespace sm {
         // vtable, tag_type, hookid
         static std::map<std::pair<void *, std::type_index>, std::unique_ptr<CVTableHook>> g_Hooked;
 
-        struct HookList_impl {
+        namespace detail {
 
             // 注意这里是右值引用
             template<class Ret>
@@ -35,7 +35,7 @@ namespace sm {
                 RETURN_META_VALUE(MRES_IGNORED, META_RESULT_ORIG_RET(Ret));
             }
             template<>
-            static void ReturnMetaIgnored<void>()
+            void ReturnMetaIgnored<void>()
             {
                 RETURN_META(MRES_IGNORED);
             }
@@ -66,6 +66,11 @@ namespace sm {
                      return ReturnMetaValue<Ret>(detail::GetHookDelegateSingleton<TagType>(), pEntity, std::forward<ArgsOriginal>(args_original)...);
                 return ReturnMetaIgnored<Ret>();
             }
+
+        }
+        using detail::HookImpl;
+
+        struct HookList_impl {
 
             /**
              * IServerGameDLL & IVEngineServer Hook Handlers

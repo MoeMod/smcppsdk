@@ -4,7 +4,7 @@
 #include <IForwardSys.h>
 
 namespace sm {
-    inline namespace functions {
+    inline namespace hook {
         namespace detail {
 
             template<class T> struct TypeIdentity
