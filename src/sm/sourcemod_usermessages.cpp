@@ -15,9 +15,15 @@ namespace sm{
     inline namespace sourcemod {
         inline namespace usermessages {
             extern int g_HudMsgNum;
-            extern int g_ShakeMsgNum;
-            extern int g_FadeMsgNum;
-            void SendHudText(CellRecipientFilter &crf, const hud_text_parms& textparms, const char* pMessage) {
+            extern int g_ShakeMsg;
+            extern int g_FadeMsg;
+            extern int g_SayTextMsg;
+            extern int g_SayText2Msg;
+            extern int g_HintTextMsg;
+            extern int g_TextMsg; // just coincidence, with same name with usermessage.
+            extern bool g_SkipNextChatConSound; // does next chat stop sound and log?
+            extern bool g_ChatConSnd; // chat with console sound
+            void HudText(CellRecipientFilter &crf, const hud_text_parms& textparms, const char* pMessage) {
 
 #if SOURCE_ENGINE == SE_CSGO
                 std::unique_ptr<CCSUsrMsg_HudMsg> msg = std::make_unique<CCSUsrMsg_HudMsg>();
@@ -74,7 +80,7 @@ namespace sm{
                 players[0] = client;
                 CellRecipientFilter crf;
                 crf.Initialize(players, 1);
-                return SendHudText(crf, textparms, pMessage);
+                return HudText(crf, textparms, pMessage);
             }
 
             void ShakeScreen(CellRecipientFilter& crf, float flAmplitude, float flFrequency, float flDurationTime)
@@ -85,9 +91,9 @@ namespace sm{
                 msg->set_local_amplitude(flAmplitude);
                 msg->set_frequency(flFrequency);
                 msg->set_duration(flDurationTime);
-                engine->SendUserMessage(crf, g_ShakeMsgNum, *msg);
+                engine->SendUserMessage(crf, g_ShakeMsg, *msg);
 #else
-                bf_write* bf = usermsgs->StartBitBufMessage(g_ShakeMsgNum, players, 1, 0);
+                bf_write* bf = usermsgs->StartBitBufMessage(g_ShakeMsg, players, 1, 0);
                 bf->WriteByte(0);
                 bf->WriteFloat(flAmplitude);
                 bf->WriteFloat(flFrequency);
@@ -125,9 +131,9 @@ namespace sm{
                 clrBuffer->set_g(color.g());
                 clrBuffer->set_b(color.b());
                 clrBuffer->set_a(color.a());
-                engine->SendUserMessage(crf, g_FadeMsgNum, *msg);
+                engine->SendUserMessage(crf, g_FadeMsg, *msg);
 #else // SOURCE_ENGINE != SE_CSGO
-                bf_write* bf = usermsgs->StartBitBufMessage(g_FadeMsgNum, players, 1, 0);
+                bf_write* bf = usermsgs->StartBitBufMessage(g_FadeMsg, players, 1, 0);
                 bf->WriteByte(iDuration);
                 bf->WriteByte(iHoldTime);
                 bf->WriteByte(iFlags);
@@ -146,6 +152,82 @@ namespace sm{
                 CellRecipientFilter crf;
                 crf.Initialize(players, 1);
                 return FadeScreen(crf, iDuration, iHoldTime, iFlags, color);
+            }
+            void SayText(CellRecipientFilter& crf, int ent_idx, const char* msg, bool chat)
+            {
+#if SOURCE_ENGINE == SE_CSGO || SOURCE_ENGINE == SE_BLADE
+                assert(g_SayTextMsg > 0);
+                std::unique_ptr<CCSUsrMsg_SayText> pMsg = std::make_unique<CCSUsrMsg_SayText>();
+
+                pMsg->set_ent_idx(ent_idx);
+                pMsg->set_text(msg);
+                pMsg->set_chat(chat);
+                engine->SendUserMessage(crf, g_SayTextMsg, *pMsg);
+#else
+                bf_write* pBitBuf = usermsgs->StartBitBufMessage(sm::g_SayTextMsg, players, 1, 0);
+                pBitBuf->WriteByte(0);
+                pBitBuf->WriteString(buffer);
+                pBitBuf->WriteByte(1);
+                usermsgs->EndMessage();
+#endif
+            }
+            // Note: in some games(eg: CSGO) supports html tag
+            // using CCSUsrMsg_TextMsg instead of CCSUsrMsg_HintText
+            void HintText(CellRecipientFilter& crf, bool hasColor, const char* pMessage)
+            {
+                if (hasColor)
+                {
+                    std::unique_ptr<CCSUsrMsg_TextMsg> msg = std::make_unique<CCSUsrMsg_TextMsg>();
+                    msg->set_msg_dst(4);
+                    msg->add_params("#SFUI_ContractKillStart");
+                    std::string buffer = "</font>" + std::string(pMessage);
+                    msg->add_params(buffer);
+                    msg->add_params();
+                    msg->add_params();
+                    msg->add_params();
+                    msg->add_params();
+                    engine->SendUserMessage(crf, g_HintTextMsg, *msg);
+                }
+                else
+                {
+                    std::unique_ptr<CCSUsrMsg_HintText> msg = std::make_unique<CCSUsrMsg_HintText>();
+                    msg->set_text(pMessage);
+                    engine->SendUserMessage(crf, g_HintTextMsg, *msg);
+                }
+            }
+            // https://github.com/Kxnrl/sourcemod-utils/blob/master/smutils.inc#L704
+            // csgo/l4d2/insurgency/etc only
+            // otherwise is not accepted
+            void SayText2(CellRecipientFilter& crf, int ent_idx, bool chat, const char* pMessage)
+            {
+                std::unique_ptr<CCSUsrMsg_SayText2> msg = std::make_unique<CCSUsrMsg_SayText2>();
+                msg->set_ent_idx(ent_idx);
+                msg->set_chat(chat);
+                msg->set_msg_name(pMessage);
+                msg->add_params();
+                msg->add_params();
+                msg->add_params();
+                msg->add_params();
+                engine->SendUserMessage(crf, g_SayText2Msg, *msg);
+            }
+            void ConstructHintTextAttribute(CellRecipientFilter &crf, const char* message)
+            {
+                std::string buffer = std::string(message);
+                if (buffer.find("<span") != std::string::npos || buffer.find("<font") != std::string::npos)
+                {
+                    return HintText(crf, true, message);
+                }
+
+                return HintText(crf, false, message);
+            }
+            void CreateHintText(int client, const char* pMessage)
+            {
+                cell_t players[1];
+                players[0] = client;
+                CellRecipientFilter crf;
+                crf.Initialize(players, 1);
+
+                return ConstructHintTextAttribute(crf, pMessage);
             }
         }
     }

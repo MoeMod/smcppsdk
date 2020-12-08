@@ -494,7 +494,7 @@ namespace sm {
         {
 
         }
-        [[warning("Does not work, may crash")]]
+        [[deprecated("Does not work, may crash")]]
         inline float GetSoundDuration(const char* name)
         {
 

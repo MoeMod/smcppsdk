@@ -17,11 +17,14 @@ namespace sm {
         IFileSystem* valvefs = nullptr;
         inline namespace usermessages {
             int g_HudMsgNum = -1;
-            int g_ShakeMsgNum = -1;
-            int g_FadeMsgNum = -1;
-        }
-        inline namespace halflife {
+            int g_ShakeMsg = -1;
+            int g_FadeMsg = -1;
             int g_SayTextMsg = -1;
+            int g_SayText2Msg = -1;
+            int g_HintTextMsg = -1;
+            int g_TextMsg = -1; // just coincidence, with same name with usermessage.
+            bool g_SkipNextChatConSound = false;
+            bool g_ChatConSnd = true;
         }
         inline namespace functions {
             ThinkQueue g_ThinkQueue;
@@ -47,6 +50,10 @@ namespace sm {
 
             g_HudMsgNum = usermsgs->GetMessageIndex(g_pGameConf->GetKeyValue("HudTextMsg"));
             g_SayTextMsg = usermsgs->GetMessageIndex("SayText");
+            g_FadeMsg = usermsgs->GetMessageIndex("Fade");
+            g_SayText2Msg = usermsgs->GetMessageIndex("SayText2");
+            g_HintTextMsg = usermsgs->GetMessageIndex("HintText");
+            g_TextMsg = usermsgs->GetMessageIndex("TextMsg");
             g_pSM->AddGameFrameHook(&OnGameFrame);
 
             return true;

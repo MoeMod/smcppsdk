@@ -10,7 +10,6 @@ namespace sm{
     inline namespace sourcemod {
         inline namespace halflife {
 
-            extern int g_SayTextMsg;
             extern IEngineSound* enginesound;
             void LogToGame(const char* format, ...);
 #pragma endregion
