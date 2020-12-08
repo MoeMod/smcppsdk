@@ -13,6 +13,8 @@ namespace sm {
         IGameConfig *g_pGameConf = nullptr;
         INetworkStringTableContainer* netstringtables = nullptr;
         IServerTools* servertools = nullptr;
+        IServerGameClients* serverClients = nullptr;
+        IServer* iserver = nullptr;
         bool detail::SDK_OnLoad(char *error, size_t maxlength, bool late) {
             char conf_error[255];
             if (!gameconfs->LoadGameConfigFile("sdktools.games", &g_pGameConf, conf_error, sizeof(conf_error)))
@@ -37,6 +39,7 @@ namespace sm {
         bool detail::SDK_OnMetamodLoad(ISmmAPI* ismm, char* error, size_t maxlen, bool late)
         {
             GET_V_IFACE_ANY(GetEngineFactory, netstringtables, INetworkStringTableContainer, INTERFACENAME_NETWORKSTRINGTABLESERVER);
+            GET_V_IFACE_ANY(GetServerFactory, serverClients, IServerGameClients, INTERFACEVERSION_SERVERGAMECLIENTS);
 #if SOURCE_ENGINE >= SE_ORANGEBOX
             GET_V_IFACE_ANY(GetServerFactory, servertools, IServerTools, VSERVERTOOLS_INTERFACE_VERSION);
 #endif

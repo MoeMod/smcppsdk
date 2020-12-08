@@ -11,10 +11,11 @@
 #include <stdexcept>
 #include <cstring>
 #include <string_view>
-
+#include "sourcemod_convert.h"
 #if SOURCE_ENGINE >= SE_ORANGEBOX
 #include <toolframework/itoolentity.h>
 #endif
+#include <iserver.h>
 
 namespace sm {
     namespace sdktools {
@@ -29,15 +30,49 @@ namespace sm {
         extern IGameConfig* g_pGameConf;
         extern INetworkStringTableContainer* netstringtables;
         extern IServerTools* servertools;
+        extern IServerGameClients* serverClients;
+        extern IServer* iserver;
 
 #pragma region sdktools_client
-        //InactivateClient
-        //ReconnectClient
+        inline void InactivateClient(IGamePlayer* player)
+        {
+            if (!player) smutils->LogError(myself, "Invalid client index: %d", player->GetIndex());
+
+            if (!iserver) throw std::runtime_error("[InactivateClient] IServer interface is not supported. DO NOT USE THIS FUNCTION!");
+
+            IClient* pClient = iserver->GetClient(player->GetIndex() - 1);
+            if (pClient) pClient->Inactivate();
+            else smutils->LogError(myself, "Cannot get IClient for client %d", player->GetIndex());
+        }
+        inline void ReconnectClient(IGamePlayer* player)
+        {
+            if (!player) smutils->LogError(myself, "Invalid client index: %d", player->GetIndex());
+
+            if (!iserver) throw std::runtime_error("[ReconnectClient] IServer interface is not supported. DO NOT USE THIS FUNCTION!");
+            IClient* pClient = iserver->GetClient(player->GetIndex() - 1);
+            if (pClient) pClient->Reconnect();
+            else smutils->LogError(myself, "Cannot get IClient for client %d", player->GetIndex());
+        }
 #pragma endregion
 
 #pragma region sdktools_engine
-        //GetClientEyePosition
-        //SetClientViewEntity
+        inline Vector GetClientEyePosition(IGamePlayer* player)
+        {
+            if (player && player->IsInGame())
+            {
+                Vector pos;
+                serverClients->ClientEarPosition(player->GetEdict(), &pos);
+                return pos;
+            }
+        }
+        inline void SetClientViewEntity(IGamePlayer* player, edict_t* edict)
+        {
+            if (!player) smutils->LogError(myself, "Invalid client index: %d", player->GetIndex());
+            if (!player->IsInGame()) smutils->LogError(myself, "Client index: %d is not in game", player->GetIndex()); 
+            if (!edict || edict->IsFree()) smutils->LogError(myself, "Entity %d is invalid.", sm::ent_cast<int>(edict));
+            engine->SetView(player->GetEdict(), edict);
+        }
+
         inline void SetLightStyle(int style, const char* value)
         {
             return engine->LightStyle(style, value);
@@ -143,13 +178,25 @@ namespace sm {
             static VFuncCaller<int(CBasePlayer::*)(int, int, bool)> caller(g_pBinTools, FindOffset("GivePlayerAmmo"));
             return caller(player, amount, ammotype, suppressSound);
         }
-        //    GetPlayerWeaponSlot
-        //    IgniteEntity
-        //    ExtinguishEntity
-        //    SlapPlayer
-        //    FindEntityByClassname
-        //    GetClientEyeAngles
-        //    GetClientAimTarget
+        inline CBaseEntity* GetPlayerWeaponSlot(CBasePlayer* player, int slot)
+        {
+            static VFuncCaller<CBaseEntity* (CBasePlayer::*)(int)> caller(g_pBinTools, FindOffset("Weapon_GetSlot"));
+            return caller(player, slot);
+        }
+#if SOURCE_ENGINE != SE_DARKMESSIAH
+        //native void IgniteEntity(int entity, float time, bool npc=false, float size=0.0, bool level=false);
+#if SOURCE_ENGINE == SE_SDK2013
+
+#endif // SOURCE_ENGINE == SE_SDK2013
+
+#else
+#endif // SOURCE_ENGINE != SE_DARKMESSIAH
+
+        //native void ExtinguishEntity(int entity);
+        //native void SlapPlayer(int client, int health=5, bool sound=true);
+        //native int FindEntityByClassname(int startEnt, const char[] classname);
+        //    native bool GetClientEyeAngles(int client, float ang[3]);
+        //    native int GetClientAimTarget(int client, bool only_clients=true);
         //    GetTeamCount
         //    GetTeamName
         //    GetTeamScore
