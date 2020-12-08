@@ -1,6 +1,6 @@
 #include "extension.h"
 
-#include "sm/sourcemod_hudtext.h"
+#include "sm/sourcemod_usermessages.h"
 #include <memory>
 
 #if SOURCE_ENGINE == SE_CSGO
@@ -13,10 +13,11 @@
 
 namespace sm{
     inline namespace sourcemod {
-        inline namespace hudtext {
+        inline namespace usermessages {
             extern int g_HudMsgNum;
             extern int g_ShakeMsgNum;
-            void UTIL_SendHudText(CellRecipientFilter &crf, const hud_text_parms& textparms, const char* pMessage) {
+            extern int g_FadeMsgNum;
+            void SendHudText(CellRecipientFilter &crf, const hud_text_parms& textparms, const char* pMessage) {
 
 #if SOURCE_ENGINE == SE_CSGO
                 std::unique_ptr<CCSUsrMsg_HudMsg> msg = std::make_unique<CCSUsrMsg_HudMsg>();
@@ -68,12 +69,12 @@ namespace sm{
 #endif
             }
 
-            void UTIL_SendHudText(int client, const hud_text_parms &textparms, const char *pMessage) {
+            void SendHudText(int client, const hud_text_parms &textparms, const char *pMessage) {
                 cell_t players[1];
                 players[0] = client;
                 CellRecipientFilter crf;
                 crf.Initialize(players, 1);
-                return UTIL_SendHudText(crf, textparms, pMessage);
+                return SendHudText(crf, textparms, pMessage);
             }
 
             void ShakeScreen(CellRecipientFilter& crf, float flAmplitude, float flFrequency, float flDurationTime)
@@ -101,6 +102,50 @@ namespace sm{
                 CellRecipientFilter crf;
                 crf.Initialize(players, 1);
                 return ShakeScreen(crf, flAmplitude, flFrequency, flDurationTime);
+            }
+            /**
+             * @brief Fade a client screen with specific parameters.
+             *
+             * @param crf               The client filter.
+             * @param flDuration        The duration of fade in the seconds.
+             * @param flHoldTime        The holding time of fade in the seconds.
+             * @param iFlags            The bits with some flags.
+             * @param vColor            The array with RGB color.
+             **/
+            void FadeScreen(CellRecipientFilter &crf, int iDuration, float iHoldTime, int iFlags, Color color)
+            {
+#if SOURCE_ENGINE == SE_CSGO
+                std::unique_ptr<CCSUsrMsg_Fade> msg = std::make_unique<CCSUsrMsg_Fade>();
+                msg->set_duration(iDuration);
+                msg->set_hold_time(iHoldTime);
+                msg->set_flags(iFlags);
+
+                CMsgRGBA* clrBuffer = msg->mutable_clr();
+                clrBuffer->set_r(color.r());
+                clrBuffer->set_g(color.g());
+                clrBuffer->set_b(color.b());
+                clrBuffer->set_a(color.a());
+                engine->SendUserMessage(crf, g_FadeMsgNum, *msg);
+#else // SOURCE_ENGINE != SE_CSGO
+                bf_write* bf = usermsgs->StartBitBufMessage(g_FadeMsgNum, players, 1, 0);
+                bf->WriteByte(iDuration);
+                bf->WriteByte(iHoldTime);
+                bf->WriteByte(iFlags);
+                bf->WriteByte(color.r());
+                bf->WriteByte(color.g());
+                bf->WriteByte(color.b());
+                bf->WriteByte(color.a());
+                usermsgs->EndMessage();
+#endif // SOURCE_ENGINE == SE_CSGO
+            }
+
+            void CreateFadeScreen(int client, int iDuration, float iHoldTime, int iFlags, Color color)
+            {
+                cell_t players[1];
+                players[0] = client;
+                CellRecipientFilter crf;
+                crf.Initialize(players, 1);
+                return FadeScreen(crf, iDuration, iHoldTime, iFlags, color);
             }
         }
     }

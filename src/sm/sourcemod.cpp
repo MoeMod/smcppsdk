@@ -15,9 +15,10 @@ namespace sm {
         ICvar *icvar = nullptr;
         IServerPluginHelpers* serverpluginhelpers = nullptr;
         IFileSystem* valvefs = nullptr;
-        inline namespace hudtext {
+        inline namespace usermessages {
             int g_HudMsgNum = -1;
             int g_ShakeMsgNum = -1;
+            int g_FadeMsgNum = -1;
         }
         inline namespace halflife {
             int g_SayTextMsg = -1;

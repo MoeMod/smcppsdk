@@ -16,7 +16,7 @@ namespace sm {
 
 #include "sourcemod_types.h"
 #include "sourcemod_convert.h"
-#include "sourcemod_hudtext.h"
+#include "sourcemod_usermessages.h"
 #include "sourcemod_halflife.h"
 #include "sourcemod_timers.h"
 #include "sourcemod_console.h"

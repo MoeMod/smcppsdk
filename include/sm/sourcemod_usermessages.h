@@ -4,7 +4,7 @@
 
 namespace sm{
     inline namespace sourcemod {
-        inline namespace hudtext {
+        inline namespace usermessages {
 
             struct hud_text_parms {
                 float x;
@@ -19,8 +19,9 @@ namespace sm{
                 int channel;
             };
 
-            void UTIL_SendHudText(int client, const hud_text_parms &textparms, const char *pMessage);
+            void SendHudText(int client, const hud_text_parms &textparms, const char *pMessage);
             void CreateShakeScreen(int client, float flAmplitude, float flFrequency, float flDurationTime);
+            void CreateFadeScreen(int client, int iDuration, float iHoldTime, int iFlags, Color color);
         }
     }
 }
