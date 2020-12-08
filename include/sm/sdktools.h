@@ -24,7 +24,7 @@ namespace sm {
             void SDK_OnUnload();
             bool SDK_OnMetamodLoad(ISmmAPI* ismm, char* error, size_t maxlen, bool late);
         }
-
+        void* FindSig(const char* name);
         int FindOffset(const char* name);
         extern IBinTools* g_pBinTools;
         extern IGameConfig* g_pGameConf;
@@ -92,11 +92,28 @@ namespace sm {
 #pragma endregion
 
 #pragma region sdktools_entoutput
-        //FireEntityOutput
-        //HookEntityOutput
-        //HookSingleEntityOutput
-        //UnhookEntityOutput
-        //UnhookSingleEntityOutput
+
+        inline void FireEntityOutput(CBaseEntity* entity, const char* output, CBaseEntity* activator = nullptr, float delay=0.0)
+        {
+            static MemFuncCaller<void(CBaseEntity::*)(const char*, CBaseEntity*, float)> caller(g_pBinTools, FindSig("FireOutput"));
+            return caller(entity, output, activator, delay);
+        }
+        inline void HookEntityOutput(const char* classname, const char* output, void* callback)
+        {
+
+        }
+        inline void HookSingleEntityOutput(CBaseEntity* entity, const char* output, void* callback, bool once=false)
+        {
+
+        }
+        inline bool UnhookEntityOutput(const char* classname, const char* output, void* callback)
+        {
+
+        }
+        inline void UnhookSingleEntityOutput(CBaseEntity* entity, const char* output, void* callback, bool once = false)
+        {
+
+        }
 #pragma endregion
 
 #pragma region sdktools_functions
@@ -183,44 +200,89 @@ namespace sm {
             static VFuncCaller<CBaseEntity* (CBasePlayer::*)(int)> caller(g_pBinTools, FindOffset("Weapon_GetSlot"));
             return caller(player, slot);
         }
-#if SOURCE_ENGINE != SE_DARKMESSIAH
-        //native void IgniteEntity(int entity, float time, bool npc=false, float size=0.0, bool level=false);
-#if SOURCE_ENGINE == SE_SDK2013
+        inline void IgniteEntity(CBaseEntity* entity, float time, bool npc = false, float size = 0.f, bool level = false)
+        {
 
-#endif // SOURCE_ENGINE == SE_SDK2013
+        }
+        inline void ExtinguishEntity(CBaseEntity* entity)
+        {
 
-#else
-#endif // SOURCE_ENGINE != SE_DARKMESSIAH
+        }
+        inline void SlapPlayer(CBasePlayer* client, int health = 5, bool sound = true)
+        {
 
-        //native void ExtinguishEntity(int entity);
-        //native void SlapPlayer(int client, int health=5, bool sound=true);
-        //native int FindEntityByClassname(int startEnt, const char[] classname);
-        //    native bool GetClientEyeAngles(int client, float ang[3]);
-        //    native int GetClientAimTarget(int client, bool only_clients=true);
-        //    GetTeamCount
-        //    GetTeamName
-        //    GetTeamScore
-        //    SetTeamScore
-        //    GetTeamClientCount
-        //    GetTeamEntity
-        //    GetPlayerDecalFile
-        //    GetPlayerJingleFile
-        //    GetServerNetStats
-        //    SetClientInfo
-        //    SetClientName
+        }
+        inline CBaseEntity* FindEntityByClassname(CBaseEntity* startEnt, const char* classname)
+        {
+            return nullptr;
+        }
+        inline Vector GetClientEyeAngles(CBasePlayer* player)
+        {
+            Vector vec;
+            return vec;
+        }
+        inline auto GetClientAimTarget(CBasePlayer* client, bool only_clients = true)
+        {
+            CBasePlayer* player = nullptr;
+            return player;
+        }
+        inline int GetTeamCount()
+        {
+
+        }
+        inline const char* GetTeamName()
+        {
+            return nullptr;
+        }
+        inline int GetTeamScore()
+        {
+            return 0;
+        }
+        inline void SetTeamScore()
+        {
+
+        }
+        inline int GetTeamClientCount()
+        {
+            return 0;
+        }
+        inline CBaseEntity* GetTeamEntity()
+        {
+            return nullptr;
+        }
+        inline const char* GetPlayerDecalFile(CBasePlayer* player)
+        {
+            return nullptr;
+        }
+        inline const char* GetPlayerJingleFile(CBasePlayer* player)
+        {
+            return nullptr;
+        }
+        inline void GetServerNetStats()
+        {
+
+        }
+        inline void SetClientInfo()
+        {
+
+        }
+        inline void SetClientName()
+        {
+
+        }
 #pragma endregion
 #pragma region sdktools_gamerules
         //GameRules_GetProp
-        //    GameRules_SetProp
-        //    GameRules_GetPropFloat
-        //    GameRules_SetPropFloat
-        //    GameRules_GetPropEnt
-        //    GameRules_SetPropEnt
-        //    GameRules_GetPropVector
-        //    GameRules_SetPropVector
-        //    GameRules_GetPropString
-        //    GameRules_SetPropString
-        //    GameRules_GetRoundState
+        //GameRules_SetProp
+        //GameRules_GetPropFloat
+        //GameRules_SetPropFloat
+        //GameRules_GetPropEnt
+        //GameRules_SetPropEnt
+        //GameRules_GetPropVector
+        //GameRules_SetPropVector
+        //GameRules_GetPropString
+        //GameRules_SetPropString
+        //GameRules_GetRoundState
 #pragma endregion
 
 #pragma region sdktools_stringtables
@@ -414,6 +476,52 @@ namespace sm {
 
             v.eVal = (unsigned long)(handle.ToInt());
             v.fieldType = FIELD_EHANDLE;
+        }
+#pragma endregion
+
+#pragma region sdktools_miscellaneous
+        inline int FindTeamByName(const char* name)
+        {
+
+        }
+#pragma endregion
+#pragma region sdktools_sound
+        inline void PrefetchSound(const char* name)
+        {
+
+        }
+        [[warning("Does not work, may crash")]]
+        inline float GetSoundDuration(const char* name)
+        {
+
+        }
+        inline void EmitAmbientSound()
+        {
+
+        }
+        inline void FadeClientVolume()
+        {
+
+        }
+        inline void StopSound()
+        {
+
+        }
+        inline void EmitSound()
+        {
+
+        }
+        inline void EmitSoundEntry()
+        {
+
+        }
+        inline void EmitSentence()
+        {
+
+        }
+        inline void GetDistGainFromSoundLevel()
+        {
+
         }
 #pragma endregion
     }

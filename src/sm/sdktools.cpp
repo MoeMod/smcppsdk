@@ -23,15 +23,20 @@ namespace sm {
             SM_GET_IFACE(BINTOOLS, g_pBinTools);
             return true;
         }
-
-        int FindOffset(const char *name)
+        int FindOffset(const char* name)
         {
             int offset;
-            if(!g_pGameConf->GetOffset(name, &offset))
+            if (!g_pGameConf->GetOffset(name, &offset))
                 throw std::runtime_error("hook : sig not found - " + std::string(name));
             return offset;
         }
-
+        void* FindSig(const char* name)
+        {
+            void* addr;
+            if (!g_pGameConf->GetMemSig(name, &addr))
+                throw std::runtime_error("hook : sig not found - " + std::string(name));
+            return addr;
+        }
         void detail::SDK_OnUnload() {
             gameconfs->CloseGameConfigFile(g_pGameConf);
         }
