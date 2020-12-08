@@ -17,6 +17,7 @@ namespace sm {
         IFileSystem* valvefs = nullptr;
         inline namespace hudtext {
             int g_HudMsgNum = -1;
+            int g_ShakeMsgNum = -1;
         }
         inline namespace halflife {
             int g_SayTextMsg = -1;

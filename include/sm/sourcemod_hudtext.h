@@ -1,5 +1,5 @@
 #pragma once
-
+// if possible, modife sourcemod_hudtext->sourcemod_usermsgs
 #include <tier0/wchartypes.h>
 
 namespace sm{
@@ -20,7 +20,7 @@ namespace sm{
             };
 
             void UTIL_SendHudText(int client, const hud_text_parms &textparms, const char *pMessage);
-
+            void CreateShakeScreen(int client, float flAmplitude, float flFrequency, float flDurationTime);
         }
     }
 }

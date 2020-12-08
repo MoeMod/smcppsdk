@@ -15,7 +15,7 @@ namespace sm{
     inline namespace sourcemod {
         inline namespace hudtext {
             extern int g_HudMsgNum;
-
+            extern int g_ShakeMsgNum;
             void UTIL_SendHudText(CellRecipientFilter &crf, const hud_text_parms& textparms, const char* pMessage) {
 
 #if SOURCE_ENGINE == SE_CSGO
@@ -76,6 +76,32 @@ namespace sm{
                 return UTIL_SendHudText(crf, textparms, pMessage);
             }
 
+            void ShakeScreen(CellRecipientFilter& crf, float flAmplitude, float flFrequency, float flDurationTime)
+            {
+#if SOURCE_ENGINE == SE_CSGO
+                std::unique_ptr<CCSUsrMsg_Shake> msg = std::make_unique<CCSUsrMsg_Shake>();
+                msg->set_command(0);
+                msg->set_local_amplitude(flAmplitude);
+                msg->set_frequency(flFrequency);
+                msg->set_duration(flDurationTime);
+                engine->SendUserMessage(crf, g_ShakeMsgNum, *msg);
+#else
+                bf_write* bf = usermsgs->StartBitBufMessage(g_ShakeMsgNum, players, 1, 0);
+                bf->WriteByte(0);
+                bf->WriteFloat(flAmplitude);
+                bf->WriteFloat(flFrequency);
+                bf->WriteFloat(flDurationTime);
+                usermsgs->EndMessage();
+#endif
+            }
+            void CreateShakeScreen(int client, float flAmplitude, float flFrequency, float flDurationTime)
+            {
+                cell_t players[1];
+                players[0] = client;
+                CellRecipientFilter crf;
+                crf.Initialize(players, 1);
+                return ShakeScreen(crf, flAmplitude, flFrequency, flDurationTime);
+            }
         }
     }
 }
