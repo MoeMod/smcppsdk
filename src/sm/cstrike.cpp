@@ -27,6 +27,14 @@ namespace sm {
         CDetour* DTerminateRound = NULL;
         bool g_TerminateRoundDetourEnabled = false;
 
+        void *FindSig(const char *name)
+        {
+            void *addr;
+            if(!g_pGameConf->GetMemSig(name, &addr))
+                throw std::runtime_error("hook : sig not found - " + std::string(name));
+            return addr;
+        }
+
         static void TerminateRound(CGameRules *gamerules, float delay, int reason) {
 #if SOURCE_ENGINE == SE_CSGO
             reason++;
@@ -35,7 +43,7 @@ namespace sm {
             static MemFuncCaller<void (CGameRules::*)(float, int, int, int)> caller(g_pBinTools, FindSig("TerminateRound"));
             return caller(gamerules, delay, reason, 0, 0);
 #else
-            static void *addr = sm::sdktools::FindSig("TerminateRound");
+            static void *addr = FindSig("TerminateRound");
 			__asm
 			{
 			push 0
@@ -55,12 +63,12 @@ namespace sm {
         }
 
         void CS_RespawnPlayer(CBasePlayer *pEntity) {
-            static MemFuncCaller<void (CBasePlayer::*)()> caller(g_pBinTools, sm::sdktools::FindSig("RoundRespawn"));
+            static MemFuncCaller<void (CBasePlayer::*)()> caller(g_pBinTools, FindSig("RoundRespawn"));
             return caller(pEntity);
         }
 
         void CS_UpdateClientModel(CBasePlayer *pEntity) {
-            static MemFuncCaller<void (CBasePlayer::*)()> caller(g_pBinTools, sm::sdktools::FindSig("SetModelFromClass"));
+            static MemFuncCaller<void (CBasePlayer::*)()> caller(g_pBinTools, FindSig("SetModelFromClass"));
             return caller(pEntity);
         }
 
@@ -70,7 +78,7 @@ namespace sm {
             static MemFuncCaller<void (CBasePlayer::*)(int)> caller(g_pBinTools, FindSig("SwitchTeam"));
             return caller(pEntity, team);
 #else
-            static void *addr = sm::sdktools::FindSig("SwitchTeam");
+            static void *addr = FindSig("SwitchTeam");
 			__asm
 			{
 			push team
@@ -86,7 +94,7 @@ namespace sm {
         }
 
         void CS_DropWeapon(CBasePlayer *pEntity, CBaseCombatWeapon *pWeapon, bool toss) {
-            static MemFuncCaller<void (CBasePlayer::*)(CBaseCombatWeapon*, bool)> caller(g_pBinTools, sm::sdktools::FindSig("DropWeaponBB"));
+            static MemFuncCaller<void (CBasePlayer::*)(CBaseCombatWeapon*, bool)> caller(g_pBinTools, FindSig("DropWeaponBB"));
             return caller(pEntity, pWeapon, toss);
         }
 
