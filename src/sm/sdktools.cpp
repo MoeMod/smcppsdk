@@ -15,6 +15,7 @@ namespace sm {
         IServerTools* servertools = nullptr;
         IServerGameClients* serverClients = nullptr;
         IServer* iserver = nullptr;
+        variant_t g_Variant_t = { .fieldType = FIELD_VOID };
         bool detail::SDK_OnLoad(char *error, size_t maxlength, bool late) {
             char conf_error[255];
             if (!gameconfs->LoadGameConfigFile("sdktools.games", &g_pGameConf, conf_error, sizeof(conf_error)))

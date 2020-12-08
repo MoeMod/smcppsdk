@@ -32,6 +32,7 @@ namespace sm {
         extern IServerTools* servertools;
         extern IServerGameClients* serverClients;
         extern IServer* iserver;
+        extern variant_t g_Variant_t;
 
 #pragma region sdktools_client
         inline void InactivateClient(IGamePlayer* player)
@@ -82,12 +83,9 @@ namespace sm {
 #pragma region sdktools_entinput
         inline bool AcceptEntityInput(CBaseEntity* dest, const char* input, CBaseEntity* activator = nullptr, CBaseEntity* pcaller = nullptr, int outputid = 0)
         {
-            variant_t value{};
-            value.eVal = INVALID_EHANDLE_INDEX;
-            value.fieldType = FIELD_VOID;
-
+            variant_t v = g_Variant_t;
             static VFuncCaller<bool(CBaseEntity::*)(const char*, CBaseEntity*, CBaseEntity*, variant_t, int)> caller(g_pBinTools, FindOffset("AcceptInput"));
-            return caller(dest, input, activator, pcaller, value, outputid);
+            return caller(dest, input, activator, pcaller, v, outputid);
         }
 #pragma endregion
 
@@ -428,47 +426,52 @@ namespace sm {
         }
 #pragma endregion
 #pragma region sdktools_varient_t
-        inline void SetVariant(bool Val)
+        inline void SetVariantBool(bool Val)
         {
             variant_t v{};
-
             v.bVal = Val;
             v.fieldType = FIELD_BOOLEAN;
+            g_Variant_t = v;
         }
-        inline void SetVariant(int Val)
+        inline void SetVariantInt(int Val)
         {
             variant_t v{};
 
             v.iVal = Val;
             v.fieldType = FIELD_INTEGER;
+            g_Variant_t = v;
         }
-        inline void SetVariant(const char *buffer)
+        inline void SetVariantString(const char *buffer)
         {
             variant_t v{};
             v.iszVal = MAKE_STRING(buffer);
             v.fieldType = FIELD_STRING;
+            g_Variant_t = v;
         }
-        inline void SetVariant(float val)
+        inline void SetVariantFloat(float val)
         {
             variant_t v{};
             v.flVal = val;
             v.fieldType = FIELD_FLOAT;
+            g_Variant_t = v;
         }
         // true=PosVec, false = vec
-        inline void SetVariant(Vector vec, bool IsPos = false)
+        inline void SetVariantVector3D(Vector vec, bool IsPos = false)
         {
             variant_t v{};
             v.vecVal[0] = vec.x;
             v.vecVal[1] = vec.y;
             v.vecVal[2] = vec.z;
             v.fieldType = IsPos ? FIELD_POSITION_VECTOR : FIELD_VECTOR;
+            g_Variant_t = v;
         }
-        inline void SetVariant(Color color)
+        inline void SetVariantColor(Color color)
         {
             variant_t v{ .rgbaVal = color.ToColor32() };
             v.fieldType = FIELD_COLOR32;
+            g_Variant_t = v;
         }
-        inline void SetVariant(CBaseEntity* entity)
+        inline void SetVariantEntity(CBaseEntity* entity)
         {
             variant_t v{};
             CBaseHandle handle;
@@ -476,6 +479,7 @@ namespace sm {
 
             v.eVal = (unsigned long)(handle.ToInt());
             v.fieldType = FIELD_EHANDLE;
+            g_Variant_t = v;
         }
 #pragma endregion
 
