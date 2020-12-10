@@ -198,7 +198,22 @@ namespace sm{
             inline bool PrintHintText(int id, const char* buffer) {
                     return gamehelpers->HintTextMsg(id, buffer);
             }
-
+            inline bool PrintToConsole(int id, const char* msg)
+            {
+                if (id <= 0) {
+                    g_SMAPI->ConPrint(msg); 
+                    return true;
+                }
+                else
+                {
+                    IGamePlayer* player = sm::ent_cast<IGamePlayer*>(id);
+                    if (!player) return false;
+                    if (!player->IsInGame()) return false;
+                    if (player->IsFakeClient()) return false;
+                    player->PrintToConsole(msg);
+                    return true;
+                }
+            }
 #define PRINT_FN(FUNC_PREFIX) \
             inline bool FUNC_PREFIX##Str(int id, std::string str) { \
                 return FUNC_PREFIX(id, str.c_str()); \

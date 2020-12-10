@@ -49,11 +49,13 @@ namespace sm {
             sm::cstrike::detail::SDK_OnLoad(error, maxlen, late);
 
             g_HudMsgNum = usermsgs->GetMessageIndex(g_pGameConf->GetKeyValue("HudTextMsg"));
+            g_ShakeMsg = usermsgs->GetMessageIndex("Shake");
             g_SayTextMsg = usermsgs->GetMessageIndex("SayText");
             g_FadeMsg = usermsgs->GetMessageIndex("Fade");
             g_SayText2Msg = usermsgs->GetMessageIndex("SayText2");
             g_HintTextMsg = usermsgs->GetMessageIndex("HintText");
             g_TextMsg = usermsgs->GetMessageIndex("TextMsg");
+
             g_pSM->AddGameFrameHook(&OnGameFrame);
 
             return true;

@@ -71,18 +71,18 @@ namespace sm {
 			template<class Fn, class...Args>
 			void RequestFrame(Fn&& fn, Args&&...data)
 			{
-				//g_ThinkQueue.AddTask(std::forward<Fn>(fn), std::forward<Args>(data)...);
+				g_ThinkQueue.AddTask(std::forward<Fn>(fn), std::forward<Args>(data)...);
 
-				auto lambda = std::bind(std::forward<Fn>(fn), std::forward<Args>(data)...);
-				using lambda_type = decltype(lambda);
-				
-				FRAMEACTION wrap_fn = +[](void* data) {
-					lambda_type* lambda_ptr = reinterpret_cast<lambda_type*>(data);
-					(*lambda_ptr)();
-					delete lambda_ptr;
-				};
-				void* warp_lambda = new lambda_type(std::move(lambda));
-				g_pSM->AddFrameAction(wrap_fn, warp_lambda);
+				//auto lambda = std::bind(std::forward<Fn>(fn), std::forward<Args>(data)...);
+				//using lambda_type = decltype(lambda);
+				//
+				//FRAMEACTION wrap_fn = +[](void* data) {
+				//	lambda_type* lambda_ptr = reinterpret_cast<lambda_type*>(data);
+				//	(*lambda_ptr)();
+				//	delete lambda_ptr;
+				//};
+				//void* warp_lambda = new lambda_type(std::move(lambda));
+				//g_pSM->AddFrameAction(wrap_fn, warp_lambda);
 			}
 
 			template<class Fn, class...Args>
