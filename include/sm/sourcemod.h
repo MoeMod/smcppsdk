@@ -24,3 +24,4 @@ namespace sm {
 #include "sourcemod_entities.h"
 #include "sourcemod_players.h"
 #include "sourcemod_filesystem.h"
+#include "sourcemod_translate.h"
