@@ -9,8 +9,6 @@
 #include <cstrike15_usermessages.pb.h>
 #endif
 
-#include "../core/CellRecipientFilter.h"
-
 namespace sm{
     inline namespace sourcemod {
         inline namespace usermessages {
@@ -23,6 +21,7 @@ namespace sm{
             extern int g_TextMsg; // just coincidence, with same name with usermessage.
             extern bool g_SkipNextChatConSound; // does next chat stop sound and log?
             extern bool g_ChatConSnd; // chat with console sound
+        	namespace detail {
             void HudText(CellRecipientFilter &crf, const hud_text_parms& textparms, const char* pMessage) {
 
 #if SOURCE_ENGINE == SE_CSGO
@@ -75,14 +74,6 @@ namespace sm{
 #endif
             }
 
-            void SendHudText(int client, const hud_text_parms &textparms, const char *pMessage) {
-                cell_t players[1];
-                players[0] = client;
-                CellRecipientFilter crf;
-                crf.Initialize(players, 1);
-                return HudText(crf, textparms, pMessage);
-            }
-
             void ShakeScreen(CellRecipientFilter& crf, float flAmplitude, float flFrequency, float flDurationTime)
             {
 #if SOURCE_ENGINE == SE_CSGO
@@ -100,14 +91,6 @@ namespace sm{
                 bf->WriteFloat(flDurationTime);
                 usermsgs->EndMessage();
 #endif
-            }
-            void CreateShakeScreen(int client, float flAmplitude, float flFrequency, float flDurationTime)
-            {
-                cell_t players[1];
-                players[0] = client;
-                CellRecipientFilter crf;
-                crf.Initialize(players, 1);
-                return ShakeScreen(crf, flAmplitude, flFrequency, flDurationTime);
             }
             /**
              * @brief Fade a client screen with specific parameters.
@@ -145,14 +128,6 @@ namespace sm{
 #endif // SOURCE_ENGINE == SE_CSGO
             }
 
-            void CreateFadeScreen(int client, int iDuration, float iHoldTime, int iFlags, Color color)
-            {
-                cell_t players[1];
-                players[0] = client;
-                CellRecipientFilter crf;
-                crf.Initialize(players, 1);
-                return FadeScreen(crf, iDuration, iHoldTime, iFlags, color);
-            }
             void SayText(CellRecipientFilter& crf, int ent_idx, const char* msg, bool chat)
             {
 #if SOURCE_ENGINE == SE_CSGO || SOURCE_ENGINE == SE_BLADE
@@ -228,6 +203,7 @@ namespace sm{
                 crf.Initialize(players, 1);
 
                 return ConstructHintTextAttribute(crf, pMessage);
+            }
             }
         }
     }
