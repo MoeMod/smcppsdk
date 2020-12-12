@@ -15,6 +15,10 @@ namespace sm {
         ICvar *icvar = nullptr;
         IServerPluginHelpers* serverpluginhelpers = nullptr;
         IFileSystem* valvefs = nullptr;
+        inline namespace translate {
+            ITranslator* translator = nullptr;
+            IPhraseCollection* collection = nullptr;
+        }
         inline namespace usermessages {
             int g_HudMsgNum = -1;
             int g_ShakeMsg = -1;

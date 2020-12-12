@@ -68,13 +68,19 @@ namespace sm{
                 return detail::SayText(crf, ent_idx, msg, chat);
             }
         	
+            template<MessageReceiver_c T> void SendSayText2(T&& client, int ent_idx, const char* msg)
+            {
+                CellRecipientFilter crf = detail::CreateCrf(std::forward<T>(client));
+                return detail::SayText2(crf, ent_idx, msg);
+            }
+
             template<MessageReceiver_c T> void CreateShakeScreen(T&& client, float flAmplitude, float flFrequency, float flDurationTime)
         	{
                 CellRecipientFilter crf = detail::CreateCrf(std::forward<T>(client));
                 return detail::ShakeScreen(crf, flAmplitude, flFrequency, flDurationTime);
         	}
         	
-            template<MessageReceiver_c T> void CreateFadeSreen(T&& client, int iDuration, float iHoldTime, int iFlags, Color color)
+            template<MessageReceiver_c T> void CreateFadeScreen(T&& client, int iDuration, float iHoldTime, int iFlags, Color color)
         	{
                 CellRecipientFilter crf = detail::CreateCrf(std::forward<T>(client));
                 return detail::FadeScreen(crf, iDuration, iHoldTime, iFlags, color);

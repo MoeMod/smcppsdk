@@ -95,6 +95,22 @@ namespace sm{
             {
                 return pPlayer->IsSourceTV();
             }
+            
+            inline int GetMaxClients() { return playerhelpers->GetMaxClients(); }
+
+            inline Vector GetClientMaxs(AutoEntity<IGamePlayer*> player)
+            {
+                IPlayerInfo* info = player->GetPlayerInfo();
+                assert(info != nullptr);
+                return info->GetPlayerMaxs();
+            }
+            
+            inline Vector GetClientMins(AutoEntity<IGamePlayer*> player)
+            {
+                IPlayerInfo* info = player->GetPlayerInfo();
+                assert(info != nullptr);
+                return info->GetPlayerMins();
+            }
         }
     }
 }
