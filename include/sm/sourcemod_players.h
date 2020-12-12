@@ -89,30 +89,22 @@ namespace sm{
 
             inline Vector GetClientMaxs(AutoEntity<IGamePlayer*> player)
             {
-                IPlayerInfo* info = player->GetPlayerInfo();
-                assert(info != nullptr);
-                return info->GetPlayerMaxs();
+                return player->GetPlayerInfo()->GetPlayerMaxs();
             }
             
             inline Vector GetClientMins(AutoEntity<IGamePlayer*> player)
             {
-                IPlayerInfo* info = player->GetPlayerInfo();
-                assert(info != nullptr);
-                return info->GetPlayerMins();
+                return player->GetPlayerInfo()->GetPlayerMins();
             }
 
             inline Vector GetClientAbsOrigins(AutoEntity<IGamePlayer*> player)
             {
-                IPlayerInfo* info = player->GetPlayerInfo();
-                assert(info != nullptr);
-                return info->GetAbsOrigin();
+                return player->GetPlayerInfo()->GetAbsOrigin();
             }
 
             inline QAngle GetClientAbsAngles(AutoEntity<IGamePlayer*> player)
             {
-                IPlayerInfo* info = player->GetPlayerInfo();
-                assert(info != nullptr);
-                return info->GetAbsAngles();
+                return player->GetPlayerInfo()->GetAbsAngles();
             }
             inline int GetMaxHumanPlayers()
             {
