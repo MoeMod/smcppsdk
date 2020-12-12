@@ -114,7 +114,7 @@ namespace sm{
 #endif
                 return (count == -1) ? GetMaxClients() : count;
             }
-            inline int GetClientCount(bool inGameOnly = true)
+            inline int GetClientCount(bool inGameOnly)
             {
                 if (inGameOnly) return GetNumPlayers();
 
@@ -130,32 +130,69 @@ namespace sm{
             {
                 if (player && IsClientConnected(player)) return player->GetIPAddress();
             }
-            //GetClientAuthId
-            //GetSteamAccountID
-            //GetClientUserId
-            //IsClientAuthorized
-            //IsClientReplay
-            //IsClientObserver
-            //GetClientInfo
-            //GetClientTeam
-            //CreateFakeClient
-            //SetFakeClientConVar
-            //GetClientModel
-            //GetClientWeapon
-            //GetClientFrags
-            //GetClientDeaths
-            //GetClientDataRate
-            //IsClientTimingOut
-            //GetClientTime
-            //GetClientLatency
-            //GetClientAvgLatency
-            //GetClientAvgLoss
-            //GetClientAvgChoke
-            //GetClientAvgData
-            //GetClientAvgPackets
-            //GetClientOfUserId
-            //GetClientSerial
-            //GetClientFromSerial
+            inline const char* GetClientAuthId(AutoEntity<IGamePlayer*> client, AuthIdType authType, bool validate = true)
+            {
+                if (!client || !IsClientConnected(client)) return nullptr;
+
+                const char* authStr;
+                switch (authType)
+                {
+                case AuthId_Engine:
+                    authStr = client->GetAuthString(validate);
+                    if (!authStr || authStr[0] == '\0') return nullptr;
+                    return authStr;
+                    break;
+                case AuthId_Steam2:
+                    authStr = client->GetSteam2Id(validate);
+                    if (!authStr || authStr[0] == '\0') return nullptr;
+                    return authStr;
+                    break;
+                case AuthId_Steam3:
+                    authStr = client->GetSteam3Id(validate);
+                    if (!authStr || authStr[0] == '\0') return nullptr;
+                    return authStr;
+                    break;
+                case AuthId_SteamID64:
+                    if (IsFakeClient(client) || gamehelpers->IsLANServer()) return nullptr;
+                    uint64_t steam64 = client->GetSteamId64(validate);
+                    if (!steam64) return nullptr;
+                    
+                    //ke::SafeSprintf(authStr, 64, "%" PRIu64, steam64);
+
+                    break;
+                }
+            }
+            inline int GetSteamAccountID(AutoEntity<IGamePlayer*> player, bool validate)
+            {
+                return player->GetSteamAccountID(validate);
+            }
+            inline int GetClientUserId(AutoEntity<IGamePlayer*> player)
+            {
+                return player->GetUserId();
+            }
+            inline bool IsClientAuthorized(AutoEntity<IGamePlayer*> player) = delete;
+            inline bool IsClientReplay(AutoEntity<IGamePlayer*> player) = delete;
+            inline bool IsClientObserver(AutoEntity<IGamePlayer*> player) = delete;
+            inline int GetClientInfo(AutoEntity<IGamePlayer*> player) = delete;
+            inline int GetClientTeam(AutoEntity<IGamePlayer*> player) = delete;
+            inline bool CreateFakeClient(const char* name) = delete;
+            inline bool SetFakeClientConVar(AutoEntity<IGamePlayer*> player, const char* cvar, const char* val) = delete;
+            inline const char* GetClientModel(AutoEntity<IGamePlayer*> player) = delete;
+            inline bool GetClientWeapon(AutoEntity<IGamePlayer*> player) = delete;
+            inline int GetClientFrags(AutoEntity<IGamePlayer*> player) = delete;
+            inline int GetClientDeaths(AutoEntity<IGamePlayer*> player) = delete;
+            inline int GetClientDataRate(AutoEntity<IGamePlayer*> player) = delete;
+            inline bool IsClientTimingOut(AutoEntity<IGamePlayer*> player) = delete;
+            inline float GetClientTime(AutoEntity<IGamePlayer*> player) = delete;
+            inline float GetClientLatency(AutoEntity<IGamePlayer*> player/*, NetFlow flow*/) = delete;
+            inline float GetClientAvgLatency(AutoEntity<IGamePlayer*> player/*, NetFlow flow*/) = delete;
+            inline float GetClientAvgLoss(AutoEntity<IGamePlayer*> player/*, NetFlow flow*/) = delete;
+            inline float GetClientAvgChoke(AutoEntity<IGamePlayer*> player/*, NetFlow flow*/) = delete;
+            inline float GetClientAvgData(AutoEntity<IGamePlayer*> player/*, NetFlow flow*/) = delete;
+            inline float GetClientAvgPackets(AutoEntity<IGamePlayer*> player/*, NetFlow flow*/) = delete;
+            inline int GetClientOfUserId(AutoEntity<IGamePlayer*> player) = delete;
+            inline int GetClientSerial(AutoEntity<IGamePlayer*> player) = delete;
+            inline int GetClientFromSerial(AutoEntity<IGamePlayer*> player) = delete;
         }
     }
 }
