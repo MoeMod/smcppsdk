@@ -10,7 +10,6 @@ namespace sm {
         extern ICvar *icvar;
         extern IServerPluginHelpers* serverpluginhelpers;
         extern IGameConfig* g_pGameConf;
-        extern IFileSystem* valvefs;
 
         // Must match clients.inc
         enum AuthIdType

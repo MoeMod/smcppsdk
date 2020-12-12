@@ -14,7 +14,9 @@ namespace sm {
         IGameConfig *g_pGameConf = nullptr;
         ICvar *icvar = nullptr;
         IServerPluginHelpers* serverpluginhelpers = nullptr;
-        IFileSystem* valvefs = nullptr;
+        inline namespace filesystem {
+            IFileSystem* valvefs = nullptr;
+        }
         inline namespace translate {
             ITranslator* translator = nullptr;
             IPhraseCollection* collection = nullptr;

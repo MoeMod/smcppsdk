@@ -1,5 +1,5 @@
 #pragma once
-// if possible, modife sourcemod_hudtext->sourcemod_usermsgs
+
 #include <tier0/wchartypes.h>
 #include "../core/CellRecipientFilter.h"
 #include <ranges>
