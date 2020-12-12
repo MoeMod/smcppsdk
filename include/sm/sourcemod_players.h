@@ -21,40 +21,27 @@ namespace sm{
 
             inline bool IsPlayerAlive(AutoEntity<IGamePlayer*> player)
             {
-                if (!player)
-                    return false;
+                if (!player) return false;
             	
                 static int lifestate_offset = -1;
                 if (lifestate_offset == -1)
                 {
-                    if (!g_pGameConf->GetOffset("m_lifeState", &lifestate_offset))
-                    {
-                        lifestate_offset = -2;
-                    }
+                    if (!g_pGameConf->GetOffset("m_lifeState", &lifestate_offset)) lifestate_offset = -2;
                 }
 
                 if (lifestate_offset < 0)
                 {
                     IPlayerInfo* info = player->GetPlayerInfo();
-                    if (info == nullptr)
-                    {
-                        return false;
-                    }
+                    if (info == nullptr) return false; 
                     return info->IsDead() ? PLAYER_LIFE_DEAD : PLAYER_LIFE_ALIVE;
                 }
 
                 auto edict = player->GetEdict();
-                if (edict == nullptr)
-                {
-                    return false;
-                }
+                if (edict == nullptr) return false;
 
                 CBaseEntity* pEntity;
                 IServerUnknown* pUnknown = edict->GetUnknown();
-                if (pUnknown == nullptr || (pEntity = pUnknown->GetBaseEntity()) == nullptr)
-                {
-                    return false;
-                }
+                if (pUnknown == nullptr || (pEntity = pUnknown->GetBaseEntity()) == nullptr) return false;
             	
                 return GetEntData<uint8_t>(pEntity, lifestate_offset) == LIFE_ALIVE;
             }
@@ -71,8 +58,7 @@ namespace sm{
 
             inline const char* GetClientName(AutoEntity<IGamePlayer*> pPlayer)
             {
-                if (!pPlayer)
-                    return icvar->FindVar("hostname")->GetString();
+                if (!pPlayer) return icvar->FindVar("hostname")->GetString();
                 return pPlayer->GetName();
             }
 
@@ -110,6 +96,20 @@ namespace sm{
                 IPlayerInfo* info = player->GetPlayerInfo();
                 assert(info != nullptr);
                 return info->GetPlayerMins();
+            }
+
+            inline Vector GetClientAbsOrigins(AutoEntity<IGamePlayer*> player)
+            {
+                IPlayerInfo* info = player->GetPlayerInfo();
+                assert(info != nullptr);
+                return info->GetAbsOrigin();
+            }
+
+            inline QAngle GetClientAbsAngles(AutoEntity<IGamePlayer*> player)
+            {
+                IPlayerInfo* info = player->GetPlayerInfo();
+                assert(info != nullptr);
+                return info->GetAbsAngles();
             }
         }
     }

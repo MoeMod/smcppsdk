@@ -80,6 +80,15 @@ namespace sm {
 		}
 		inline int native2cell(IPluginContext* pContext, const Vector& in, cell_t* out) = delete; // TODO
 
+		inline int cell2native(IPluginContext* pContext, cell_t in, QAngle& out)
+		{
+			cell_t* angParams;
+			pContext->LocalToPhysAddr(in, &angParams);
+			out = QAngle(sp_ctof(angParams[0]), sp_ctof(angParams[1]), sp_ctof(angParams[2]));
+			return 1;
+		}
+		inline int native2cell(IPluginContext* pContext, const QAngle& in, cell_t* out) = delete;
+
 		template<template<class> class FnType, class Ret, class...Args >
 		inline auto cell2native(IPluginContext* pContext, cell_t in, FnType<Ret(Args...)>& out)
 			-> typename std::enable_if<
