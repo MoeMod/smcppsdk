@@ -2,7 +2,8 @@
 #include <PlayerManager.h>
 #include <IPlayerHelpers.h>
 #include "sm/sourcemod_types.h"
-
+#include "sdktools.h"
+//#include "sm/ranges.h"
 namespace sm{
     inline namespace sourcemod {
         inline namespace players {
@@ -21,58 +22,44 @@ namespace sm{
 
             inline bool IsPlayerAlive(AutoEntity<IGamePlayer*> player)
             {
-                if (!player)
-                    return false;
+                if (!player) return false;
             	
                 static int lifestate_offset = -1;
                 if (lifestate_offset == -1)
                 {
-                    if (!g_pGameConf->GetOffset("m_lifeState", &lifestate_offset))
-                    {
-                        lifestate_offset = -2;
-                    }
+                    if (!g_pGameConf->GetOffset("m_lifeState", &lifestate_offset)) lifestate_offset = -2;
                 }
 
                 if (lifestate_offset < 0)
                 {
                     IPlayerInfo* info = player->GetPlayerInfo();
-                    if (info == nullptr)
-                    {
-                        return false;
-                    }
+                    if (info == nullptr) return false; 
                     return info->IsDead() ? PLAYER_LIFE_DEAD : PLAYER_LIFE_ALIVE;
                 }
 
                 auto edict = player->GetEdict();
-                if (edict == nullptr)
-                {
-                    return false;
-                }
+                if (edict == nullptr) return false;
 
                 CBaseEntity* pEntity;
                 IServerUnknown* pUnknown = edict->GetUnknown();
-                if (pUnknown == nullptr || (pEntity = pUnknown->GetBaseEntity()) == nullptr)
-                {
-                    return false;
-                }
+                if (pUnknown == nullptr || (pEntity = pUnknown->GetBaseEntity()) == nullptr) return false;
             	
                 return GetEntData<uint8_t>(pEntity, lifestate_offset) == LIFE_ALIVE;
             }
 
-            inline int GetHealth(AutoEntity<IGamePlayer*> pPlayer)
+            inline int GetClientHealth(AutoEntity<IGamePlayer*> pPlayer)
             {
                 return pPlayer->GetPlayerInfo()->GetHealth();
             }
 
-            inline int GetArmorValue(AutoEntity<IGamePlayer*> pPlayer)
+            inline int GetClientArmor(AutoEntity<IGamePlayer*> pPlayer)
             {
                 return pPlayer->GetPlayerInfo()->GetArmorValue();
             }
 
             inline const char* GetClientName(AutoEntity<IGamePlayer*> pPlayer)
             {
-                if (!pPlayer)
-                    return icvar->FindVar("hostname")->GetString();
+                if (!pPlayer) return icvar->FindVar("hostname")->GetString();
                 return pPlayer->GetName();
             }
 
@@ -95,6 +82,88 @@ namespace sm{
             {
                 return pPlayer->IsSourceTV();
             }
+            
+            inline int GetMaxClients() { return playerhelpers->GetMaxClients(); }
+
+            inline int GetNumPlayers() { return playerhelpers->GetNumPlayers(); }
+
+            inline Vector GetClientMaxs(AutoEntity<IGamePlayer*> player)
+            {
+                IPlayerInfo* info = player->GetPlayerInfo();
+                assert(info != nullptr);
+                return info->GetPlayerMaxs();
+            }
+            
+            inline Vector GetClientMins(AutoEntity<IGamePlayer*> player)
+            {
+                IPlayerInfo* info = player->GetPlayerInfo();
+                assert(info != nullptr);
+                return info->GetPlayerMins();
+            }
+
+            inline Vector GetClientAbsOrigins(AutoEntity<IGamePlayer*> player)
+            {
+                IPlayerInfo* info = player->GetPlayerInfo();
+                assert(info != nullptr);
+                return info->GetAbsOrigin();
+            }
+
+            inline QAngle GetClientAbsAngles(AutoEntity<IGamePlayer*> player)
+            {
+                IPlayerInfo* info = player->GetPlayerInfo();
+                assert(info != nullptr);
+                return info->GetAbsAngles();
+            }
+            inline int GetMaxHumanPlayers()
+            {
+                int count = -1;
+#if SOURCE_ENGINE >= SE_LEFT4DEAD
+                count = serverClients->GetMaxHumanPlayers();
+#endif
+                return (count == -1) ? GetMaxClients() : count;
+            }
+            inline int GetClientCount(bool inGameOnly = true)
+            {
+                if (inGameOnly) return GetNumPlayers();
+
+                int maxplayers = GetMaxClients();
+                int cnt = 0;
+                for (int i = 1; i <= maxplayers; ++i)
+                    // 原版就是这么写的
+                    if (IsClientConnected(i) && !IsClientInGame(i)) cnt++;
+                return (GetNumPlayers() + cnt);
+            }
+
+            inline const char* GetClientIP(AutoEntity<IGamePlayer*> player)
+            {
+                if (player && IsClientConnected(player)) return player->GetIPAddress();
+            }
+            //GetClientAuthId
+            //GetSteamAccountID
+            //GetClientUserId
+            //IsClientAuthorized
+            //IsClientReplay
+            //IsClientObserver
+            //GetClientInfo
+            //GetClientTeam
+            //CreateFakeClient
+            //SetFakeClientConVar
+            //GetClientModel
+            //GetClientWeapon
+            //GetClientFrags
+            //GetClientDeaths
+            //GetClientDataRate
+            //IsClientTimingOut
+            //GetClientTime
+            //GetClientLatency
+            //GetClientAvgLatency
+            //GetClientAvgLoss
+            //GetClientAvgChoke
+            //GetClientAvgData
+            //GetClientAvgPackets
+            //GetClientOfUserId
+            //GetClientSerial
+            //GetClientFromSerial
         }
     }
 }
