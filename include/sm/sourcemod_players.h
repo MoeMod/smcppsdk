@@ -2,7 +2,8 @@
 #include <PlayerManager.h>
 #include <IPlayerHelpers.h>
 #include "sm/sourcemod_types.h"
-
+#include "sdktools.h"
+//#include "sm/ranges.h"
 namespace sm{
     inline namespace sourcemod {
         inline namespace players {
@@ -46,12 +47,12 @@ namespace sm{
                 return GetEntData<uint8_t>(pEntity, lifestate_offset) == LIFE_ALIVE;
             }
 
-            inline int GetHealth(AutoEntity<IGamePlayer*> pPlayer)
+            inline int GetClientHealth(AutoEntity<IGamePlayer*> pPlayer)
             {
                 return pPlayer->GetPlayerInfo()->GetHealth();
             }
 
-            inline int GetArmorValue(AutoEntity<IGamePlayer*> pPlayer)
+            inline int GetClientArmor(AutoEntity<IGamePlayer*> pPlayer)
             {
                 return pPlayer->GetPlayerInfo()->GetArmorValue();
             }
@@ -84,6 +85,8 @@ namespace sm{
             
             inline int GetMaxClients() { return playerhelpers->GetMaxClients(); }
 
+            inline int GetNumPlayers() { return playerhelpers->GetNumPlayers(); }
+
             inline Vector GetClientMaxs(AutoEntity<IGamePlayer*> player)
             {
                 IPlayerInfo* info = player->GetPlayerInfo();
@@ -111,6 +114,56 @@ namespace sm{
                 assert(info != nullptr);
                 return info->GetAbsAngles();
             }
+            inline int GetMaxHumanPlayers()
+            {
+                int count = -1;
+#if SOURCE_ENGINE >= SE_LEFT4DEAD
+                count = serverClients->GetMaxHumanPlayers();
+#endif
+                return (count == -1) ? GetMaxClients() : count;
+            }
+            inline int GetClientCount(bool inGameOnly = true)
+            {
+                if (inGameOnly) return GetNumPlayers();
+
+                int maxplayers = GetMaxClients();
+                int cnt = 0;
+                for (int i = 1; i <= maxplayers; ++i)
+                    // 原版就是这么写的
+                    if (IsClientConnected(i) && !IsClientInGame(i)) cnt++;
+                return (GetNumPlayers() + cnt);
+            }
+
+            inline const char* GetClientIP(AutoEntity<IGamePlayer*> player)
+            {
+                if (player && IsClientConnected(player)) return player->GetIPAddress();
+            }
+            //GetClientAuthId
+            //GetSteamAccountID
+            //GetClientUserId
+            //IsClientAuthorized
+            //IsClientReplay
+            //IsClientObserver
+            //GetClientInfo
+            //GetClientTeam
+            //CreateFakeClient
+            //SetFakeClientConVar
+            //GetClientModel
+            //GetClientWeapon
+            //GetClientFrags
+            //GetClientDeaths
+            //GetClientDataRate
+            //IsClientTimingOut
+            //GetClientTime
+            //GetClientLatency
+            //GetClientAvgLatency
+            //GetClientAvgLoss
+            //GetClientAvgChoke
+            //GetClientAvgData
+            //GetClientAvgPackets
+            //GetClientOfUserId
+            //GetClientSerial
+            //GetClientFromSerial
         }
     }
 }
