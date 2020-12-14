@@ -22,7 +22,7 @@ namespace sm{
             extern bool g_SkipNextChatConSound; // does next chat stop sound and log?
             extern bool g_ChatConSnd; // chat with console sound
         	namespace detail {
-            void HudText(CellRecipientFilter &crf, const hud_text_parms& textparms, const char* pMessage) {
+            void HudText(IRecipientFilter&crf, const hud_text_parms& textparms, const char* pMessage) {
 
 #if SOURCE_ENGINE == SE_CSGO
                 std::unique_ptr<CCSUsrMsg_HudMsg> msg = std::make_unique<CCSUsrMsg_HudMsg>();
@@ -74,7 +74,7 @@ namespace sm{
 #endif
             }
 
-            void ShakeScreen(CellRecipientFilter& crf, float flAmplitude, float flFrequency, float flDurationTime)
+            void ShakeScreen(IRecipientFilter& crf, float flAmplitude, float flFrequency, float flDurationTime)
             {
 #if SOURCE_ENGINE == SE_CSGO
                 std::unique_ptr<CCSUsrMsg_Shake> msg = std::make_unique<CCSUsrMsg_Shake>();
@@ -101,7 +101,7 @@ namespace sm{
              * @param iFlags            The bits with some flags.
              * @param vColor            The array with RGB color.
              **/
-            void FadeScreen(CellRecipientFilter &crf, int iDuration, float iHoldTime, int iFlags, Color color)
+            void FadeScreen(IRecipientFilter&crf, int iDuration, float iHoldTime, int iFlags, Color color)
             {
 #if SOURCE_ENGINE == SE_CSGO
                 std::unique_ptr<CCSUsrMsg_Fade> msg = std::make_unique<CCSUsrMsg_Fade>();
@@ -128,7 +128,7 @@ namespace sm{
 #endif // SOURCE_ENGINE == SE_CSGO
             }
 
-            void SayText(CellRecipientFilter& crf, int ent_idx, const char* msg, bool chat)
+            void SayText(IRecipientFilter& crf, int ent_idx, const char* msg, bool chat)
             {
 #if SOURCE_ENGINE == SE_CSGO || SOURCE_ENGINE == SE_BLADE
                 assert(g_SayTextMsg > 0);
@@ -148,7 +148,7 @@ namespace sm{
             }
             // Note: in some games(eg: CSGO) supports html tag
             // using CCSUsrMsg_TextMsg instead of CCSUsrMsg_HintText
-            void HintText(CellRecipientFilter& crf, bool hasColor, const char* pMessage)
+            void HintText(IRecipientFilter& crf, bool hasColor, const char* pMessage)
             {
                 if (hasColor)
                 {
@@ -173,7 +173,7 @@ namespace sm{
             // https://github.com/Kxnrl/sourcemod-utils/blob/master/smutils.inc#L704
             // csgo/l4d2/insurgency/etc only
             // otherwise is not accepted
-            void SayText2(CellRecipientFilter& crf, int ent_idx, bool chat, const char* pMessage)
+            void SayText2(IRecipientFilter& crf, int ent_idx, bool chat, const char* pMessage)
             {
                 std::unique_ptr<CCSUsrMsg_SayText2> msg = std::make_unique<CCSUsrMsg_SayText2>();
                 msg->set_ent_idx(ent_idx);
@@ -185,7 +185,7 @@ namespace sm{
                 msg->add_params();
                 engine->SendUserMessage(crf, g_SayText2Msg, *msg);
             }
-            void ConstructHintTextAttribute(CellRecipientFilter &crf, const char* message)
+            void ConstructHintTextAttribute(IRecipientFilter&crf, const char* message)
             {
                 std::string buffer = std::string(message);
                 if (buffer.find("<span") != std::string::npos || buffer.find("<font") != std::string::npos)
@@ -194,15 +194,6 @@ namespace sm{
                 }
 
                 return HintText(crf, false, message);
-            }
-            void CreateHintText(int client, const char* pMessage)
-            {
-                cell_t players[1];
-                players[0] = client;
-                CellRecipientFilter crf;
-                crf.Initialize(players, 1);
-
-                return ConstructHintTextAttribute(crf, pMessage);
             }
             }
         }
