@@ -101,7 +101,7 @@ namespace sm{
              * @param iFlags            The bits with some flags.
              * @param vColor            The array with RGB color.
              **/
-            void FadeScreen(IRecipientFilter&crf, int iDuration, float iHoldTime, int iFlags, Color color)
+            void FadeScreen(IRecipientFilter&crf, int iDuration, int iHoldTime, int iFlags, Color color)
             {
 #if SOURCE_ENGINE == SE_CSGO
                 std::unique_ptr<CCSUsrMsg_Fade> msg = std::make_unique<CCSUsrMsg_Fade>();

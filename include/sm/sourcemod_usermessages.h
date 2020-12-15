@@ -27,7 +27,7 @@ namespace sm{
         	namespace detail {
                 void HudText(IRecipientFilter& crf, const hud_text_parms& textparms, const char* pMessage);
                 void ShakeScreen(IRecipientFilter& crf, float flAmplitude, float flFrequency, float flDurationTime);
-                void FadeScreen(IRecipientFilter& crf, int iDuration, float iHoldTime, int iFlags, Color color);
+                void FadeScreen(IRecipientFilter& crf, int iDuration, int iHoldTime, int iFlags, Color color);
                 void SayText(IRecipientFilter& crf, int ent_idx, const char* msg, bool chat);
                 void HintText(IRecipientFilter& crf, bool hasColor, const char* pMessage);
                 void SayText2(IRecipientFilter& crf, int ent_idx, bool chat, const char* pMessage);
@@ -110,7 +110,7 @@ namespace sm{
                 return detail::ShakeScreen(crf, flAmplitude, flFrequency, flDurationTime);
         	}
         	
-            template<MessageReceiver_c T> void CreateFadeScreen(T&& client, int iDuration, float iHoldTime, int iFlags, Color color)
+            template<MessageReceiver_c T> void CreateFadeScreen(T&& client, int iDuration, int iHoldTime, int iFlags, Color color)
         	{
                 auto crf = detail::CreateCrf(std::forward<T>(client));
                 return detail::FadeScreen(crf, iDuration, iHoldTime, iFlags, color);

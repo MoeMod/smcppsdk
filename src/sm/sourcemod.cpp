@@ -77,27 +77,6 @@ namespace sm {
 
             sm::SetEntProp<RenderMode_t>(entity, sm::Prop_Send, prop, mode, 1);
         }
-         //stock void SetEntityRenderMode(int entity, RenderMode mode)
-         //{
-         //    static bool gotconfig = false;
-         //    static char prop[32];
-
-         //    if (!gotconfig)
-         //    {
-         //        GameData gc = new GameData("core.games");
-         //        bool exists = gc.GetKeyValue("m_nRenderMode", prop, sizeof(prop));
-         //        delete gc;
-
-         //        if (!exists)
-         //        {
-         //            strcopy(prop, sizeof(prop), "m_nRenderMode");
-         //        }
-
-         //        gotconfig = true;
-         //    }
-
-         //    SetEntProp(entity, Prop_Send, prop, mode, 1);
-         //}
 
         bool SDK_OnLoad(char *error, size_t maxlen, bool late) {
             char conf_error[255];
