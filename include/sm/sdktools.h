@@ -163,9 +163,9 @@ namespace sm {
 
             // TODO: When SE_VERSION < ORANGEBOX: VFuncCaller
         }
-        inline void TeleportEntity(CBaseEntity* pEntity, Vector newpos, Vector newang, Vector newVel)
+        inline void TeleportEntity(CBaseEntity* pEntity, Vector newpos, QAngle newang, Vector newVel)
         {
-            static VFuncCaller<void(CBaseEntity::*)(Vector, Vector, Vector)> caller(g_pBinTools, FindOffset("Teleport"));
+            static VFuncCaller<void(CBaseEntity::*)(Vector, QAngle, Vector)> caller(g_pBinTools, FindOffset("Teleport"));
             return caller(pEntity, newpos, newang, newVel);
         }
         inline void ActivateEntity(CBaseEntity* entity)

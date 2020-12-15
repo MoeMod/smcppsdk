@@ -40,6 +40,65 @@ namespace sm {
             g_ThinkQueue.CallAndClear();
         }
 
+        /**
+         * Gets an entity's render mode.
+         *
+         * @param entity        Entity index.
+         * @return              RenderMode value.
+         * @error               Invalid entity index, or lack of mod compliance.
+         */
+        inline RenderMode_t GetEntityRenderMode(CBaseEntity* entity)
+        {
+            const char* prop = g_pGameConf->GetKeyValue("m_nRenderMode");
+            
+            if (!prop) {
+                std::string buffer("m_nRenderMode");
+                prop = buffer.c_str();
+            }
+
+            return sm::GetEntProp<RenderMode_t>(entity, sm::Prop_Send, prop, 1);
+        }
+
+        /**
+         * Sets an entity's render mode.
+         *
+         * @param entity        Entity index.
+         * @param mode          RenderMode value.
+         * @error               Invalid entity index, or lack of mod compliance.
+         */
+        inline void SetEntityRenderMode(CBaseEntity* entity, RenderMode_t mode)
+        {
+            const char* prop = g_pGameConf->GetKeyValue("m_nRenderMode");
+
+            if (!prop) {
+                std::string buffer("m_nRenderMode");
+                prop = buffer.c_str();
+            }
+
+            sm::SetEntProp<RenderMode_t>(entity, sm::Prop_Send, prop, mode, 1);
+        }
+         //stock void SetEntityRenderMode(int entity, RenderMode mode)
+         //{
+         //    static bool gotconfig = false;
+         //    static char prop[32];
+
+         //    if (!gotconfig)
+         //    {
+         //        GameData gc = new GameData("core.games");
+         //        bool exists = gc.GetKeyValue("m_nRenderMode", prop, sizeof(prop));
+         //        delete gc;
+
+         //        if (!exists)
+         //        {
+         //            strcopy(prop, sizeof(prop), "m_nRenderMode");
+         //        }
+
+         //        gotconfig = true;
+         //    }
+
+         //    SetEntProp(entity, Prop_Send, prop, mode, 1);
+         //}
+
         bool SDK_OnLoad(char *error, size_t maxlen, bool late) {
             char conf_error[255];
             if (!gameconfs->LoadGameConfigFile("core.games", &g_pGameConf, conf_error, sizeof(conf_error)))
