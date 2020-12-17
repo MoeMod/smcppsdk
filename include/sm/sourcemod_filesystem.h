@@ -3,7 +3,6 @@
 #include "filesystem.h"
 #include <filesystem>
 
-// perhaps using std::fs will be easier..
 namespace sm
 {
 	inline namespace sourcemod
@@ -11,6 +10,9 @@ namespace sm
 		
 		inline namespace filesystem
 		{
+			// You may want to ask: Why we construct SystemFile here, rather than using std::fstream
+			// Well..definitely.. this is due to fstream.read does not accept any other char (int8_t, etc) expected of char*
+			// But out term is for all cases, so that we have to construct a SystemFile class.
 			class SystemFile
 			{
 			public:
@@ -72,6 +74,7 @@ namespace sm
 
 			};
 
+			// This is for binary this, for majority.
 			inline int32_t ReadFileString(SystemFile* file, char* buffer, int size, int read_count = -1)
 			{
 				int32_t num_read = 0;
@@ -110,6 +113,9 @@ namespace sm
 				return num_read;
 			}
 
+			// IFileSystem <=> ValveFile
+			// Same as Systemfile
+			// so that we don't construct here.
 			extern IFileSystem* valvefs;
 			inline bool FileExists(const char* path, bool use_valve_fs = false, const char* valve_path_id = "GAME")
 			{
@@ -132,9 +138,6 @@ namespace sm
 				g_pSM->BuildPath(Path_Game, realpath, sizeof(realpath), "%s", path);
 				return std::filesystem::is_directory(realpath);
 			}
-			// Register functions.
-			//native File OpenFile(const char[] file, const char[] mode, bool use_valve_fs = false, const char[] valve_path_id = "GAME");
-			//native bool DeleteFile(const char[] path, bool use_valve_fs=false, const char[] valve_path_id="DEFAULT_WRITE_PATH");
 			#undef DeleteFile
 			inline bool DeleteFile(const char* path, bool use_valve_fs = false, const char* valve_path_id = "DEFAULT_WRITE_PATH")
 			{
@@ -149,8 +152,6 @@ namespace sm
 				std::filesystem::remove(buffer);
 				return true;
 			}
-			//native bool ReadFileLine(Handle hndl, char[] buffer, int maxlength);
-			//native int ReadFile(Handle hndl, any[] items, int num_items, int size);
 		}
 	}
 }

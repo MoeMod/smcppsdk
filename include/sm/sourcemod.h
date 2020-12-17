@@ -28,35 +28,6 @@ namespace sm {
         inline RenderMode_t GetEntityRenderMode(CBaseEntity* entity);
 
         inline void SetEntityRenderMode(CBaseEntity* entity, RenderMode_t mode);
-
-        /**
-         * Sets an entity's render mode.
-         *
-         * @param entity        Entity index.
-         * @param mode          RenderMode value.
-         * @error               Invalid entity index, or lack of mod compliance.
-         */
-        //stock void SetEntityRenderMode(int entity, RenderMode mode)
-        //{
-        //    static bool gotconfig = false;
-        //    static char prop[32];
-
-        //    if (!gotconfig)
-        //    {
-        //        GameData gc = new GameData("core.games");
-        //        bool exists = gc.GetKeyValue("m_nRenderMode", prop, sizeof(prop));
-        //        delete gc;
-
-        //        if (!exists)
-        //        {
-        //            strcopy(prop, sizeof(prop), "m_nRenderMode");
-        //        }
-
-        //        gotconfig = true;
-        //    }
-
-        //    SetEntProp(entity, Prop_Send, prop, mode, 1);
-        //}
     }
 };
 
