@@ -14,6 +14,11 @@ namespace sm {
         IGameConfig *g_pGameConf = nullptr;
         ICvar *icvar = nullptr;
         IServerPluginHelpers* serverpluginhelpers = nullptr;
+        
+        inline namespace halflife {
+            IEngineSound* enginesound = nullptr;
+        }
+
         inline namespace filesystem {
             IFileSystem* valvefs = nullptr;
         }
