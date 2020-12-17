@@ -42,3 +42,4 @@ namespace sm {
 #include "sourcemod_players.h"
 #include "sourcemod_filesystem.h"
 #include "sourcemod_translate.h"
+#include "sourcemod_string.h"
