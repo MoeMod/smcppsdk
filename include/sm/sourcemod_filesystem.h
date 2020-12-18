@@ -10,23 +10,21 @@ namespace sm
 		
 		inline namespace filesystem
 		{
-			// You may want to ask: Why we construct SystemFile here, rather than using std::fstream
-			// Well..definitely.. this is due to fstream.read does not accept any other char (int8_t, etc) expected of char*
-			// But out term is for all cases, so that we have to construct a SystemFile class.
+			extern IFileSystem* valvefs;
+			extern IBaseFileSystem* basefilesystem;
+
 			class SystemFile
 			{
 			public:
-				SystemFile(FILE* fp)
-					: fp_(fp)
-				{}
-				~SystemFile() {
+				SystemFile(FILE* fp) : fp_(fp) {}
+				~SystemFile() { 
 					Close();
 				}
-
 				static SystemFile* Open(const char* path, const char* mode) {
-					FILE* fp = fopen(path, mode);
-					if (!fp)
-						return nullptr;
+					char realpath[256];
+					g_pSM->BuildPath(Path_Game, realpath, sizeof(realpath), "%s", path);
+					FILE* fp = fopen(realpath, mode);
+					if (!fp) return nullptr;
 					return new SystemFile(fp);
 				}
 				static bool Delete(const char* path) {
@@ -70,8 +68,6 @@ namespace sm
 				}
 			private:
 				FILE* fp_;
-				//std::string _filename;
-
 			};
 
 			// This is for binary this, for majority.
@@ -113,10 +109,6 @@ namespace sm
 				return num_read;
 			}
 
-			// IFileSystem <=> ValveFile
-			// Same as Systemfile
-			// so that we don't construct here.
-			extern IFileSystem* valvefs;
 			inline bool FileExists(const char* path, bool use_valve_fs = false, const char* valve_path_id = "GAME")
 			{
 				if (use_valve_fs)
