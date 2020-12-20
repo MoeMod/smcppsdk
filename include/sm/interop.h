@@ -60,7 +60,10 @@ namespace sm {
 			out = str;
 			return 1;
 		}
-		inline int native2cell(IPluginContext* pContext, const std::string& in, cell_t* out) = delete; // TODO
+		inline int native2cell(IPluginContext* pContext, const std::string& in, cell_t out, cell_t maxbyte)
+		{
+			return pContext->StringToLocalUTF8(out, maxbyte, in.c_str(), nullptr);
+		}
 
 		inline int cell2native(IPluginContext* pContext, cell_t in, Color& out)
 		{
@@ -69,7 +72,15 @@ namespace sm {
 			out = Color(vecParams[0], vecParams[1], vecParams[2]);
 			return 1;
 		}
-		inline int native2cell(IPluginContext* pContext, const Color& in, cell_t* out) = delete; // TODO
+		inline int native2cell(IPluginContext* pContext, const Color& in, cell_t out)
+		{
+			cell_t* addr;
+			pContext->LocalToPhysAddr(out, &addr);
+			addr[0] = in.r();
+			addr[1] = in.g();
+			addr[2] = in.b();
+			return 1;
+		}
 
 		inline int cell2native(IPluginContext* pContext, cell_t in, Vector& out)
 		{
@@ -78,7 +89,15 @@ namespace sm {
 			out = Vector(sp_ctof(vecParams[0]), sp_ctof(vecParams[1]), sp_ctof(vecParams[2]));
 			return 1;
 		}
-		inline int native2cell(IPluginContext* pContext, const Vector& in, cell_t* out) = delete; // TODO
+		inline int native2cell(IPluginContext* pContext, const Vector& in, cell_t out)
+		{
+			cell_t* addr;
+			pContext->LocalToPhysAddr(out, &addr);
+			addr[0] = sp_ftoc(in.x);
+			addr[1] = sp_ftoc(in.y);
+			addr[2] = sp_ftoc(in.z);
+			return 1;
+		}
 
 		inline int cell2native(IPluginContext* pContext, cell_t in, QAngle& out)
 		{
@@ -87,7 +106,15 @@ namespace sm {
 			out = QAngle(sp_ctof(angParams[0]), sp_ctof(angParams[1]), sp_ctof(angParams[2]));
 			return 1;
 		}
-		inline int native2cell(IPluginContext* pContext, const QAngle& in, cell_t* out) = delete;
+		inline int native2cell(IPluginContext* pContext, const QAngle& in, cell_t out)
+		{
+			cell_t* addr;
+			pContext->LocalToPhysAddr(out, &addr);
+			addr[0] = sp_ftoc(in.x);
+			addr[1] = sp_ftoc(in.y);
+			addr[2] = sp_ftoc(in.z);
+			return 1;
+		}
 
 		template<template<class> class FnType, class Ret, class...Args >
 		inline auto cell2native(IPluginContext* pContext, cell_t in, FnType<Ret(Args...)>& out)

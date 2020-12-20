@@ -29,9 +29,11 @@ namespace sm
 					iequal<typename T::value_type>(loc)
 				);
 
-				if (it != str1.end()) return (it - str1.begin());
-				else return -1;
+				return (it != str1.end()) ? (it - str1.begin()) : -1;
 			}
+
+			template<String_c T>
+			int FindCharInString(T& in, std::size_t keyword) { return (keyword != std::string::npos) ? keyword : -1; }
 		}
 	}
 }
