@@ -20,8 +20,7 @@ namespace sm {
         }
 
         inline namespace filesystem {
-            IBaseFileSystem* basefilesystem = nullptr;
-            IFileSystem* valvefs = nullptr;
+            IFileSystem* g_pFullFileSystem = nullptr;
         }
         inline namespace translate {
             ITranslator* translator = nullptr;
@@ -123,8 +122,7 @@ namespace sm {
         {
             GET_V_IFACE_CURRENT(GetEngineFactory, icvar, ICvar, CVAR_INTERFACE_VERSION);
             GET_V_IFACE_CURRENT(GetEngineFactory, serverpluginhelpers, IServerPluginHelpers, INTERFACEVERSION_ISERVERPLUGINHELPERS);
-            GET_V_IFACE_CURRENT(GetFileSystemFactory, basefilesystem, IBaseFileSystem, BASEFILESYSTEM_INTERFACE_VERSION);
-            GET_V_IFACE_CURRENT(GetFileSystemFactory, valvefs, IFileSystem, BASEFILESYSTEM_INTERFACE_VERSION);
+            GET_V_IFACE_CURRENT(GetFileSystemFactory, g_pFullFileSystem, IFileSystem, FILESYSTEM_INTERFACE_VERSION);
             GET_V_IFACE_ANY(GetEngineFactory, enginesound, IEngineSound, IENGINESOUND_SERVER_INTERFACE_VERSION);
             sm::sdktools::detail::SDK_OnMetamodLoad(ismm, error, maxlen, late);
 

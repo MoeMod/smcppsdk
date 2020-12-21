@@ -10,8 +10,7 @@ namespace sm
 		
 		inline namespace filesystem
 		{
-			extern IFileSystem* valvefs;
-			extern IBaseFileSystem* basefilesystem;
+			extern IFileSystem* g_pFullFileSystem;
 
 			class SystemFile
 			{
@@ -113,7 +112,7 @@ namespace sm
 			{
 				if (use_valve_fs)
 				{
-					return valvefs->FileExists(path, valve_path_id);
+					return g_pFullFileSystem->FileExists(path, valve_path_id);
 				}
 
 				char realpath[256];
@@ -124,7 +123,7 @@ namespace sm
 			{
 				if (use_valve_fs)
 				{
-					return valvefs->IsDirectory(path, valve_path_id);
+					return g_pFullFileSystem->IsDirectory(path, valve_path_id);
 				}
 				char realpath[256];
 				g_pSM->BuildPath(Path_Game, realpath, sizeof(realpath), "%s", path);
@@ -135,7 +134,7 @@ namespace sm
 			{
 				if (use_valve_fs)
 				{
-					valvefs->RemoveFile(path, valve_path_id);
+					g_pFullFileSystem->RemoveFile(path, valve_path_id);
 					return true;
 				}
 
