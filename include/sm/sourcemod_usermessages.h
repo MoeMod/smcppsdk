@@ -123,3 +123,5 @@ namespace sm{
         }
     }
 }
+
+#include "impl/sourcemod_impl_usermessages.hpp"

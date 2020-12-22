@@ -248,5 +248,43 @@ namespace sm {
 			return std::span<T, std::dynamic_extent>(first, arraysize);
 		}
 #endif
+
+		/**
+		 * Gets an entity's render mode.
+		 *
+		 * @param entity        Entity index.
+		 * @return              RenderMode value.
+		 * @error               Invalid entity index, or lack of mod compliance.
+		 */
+		inline RenderMode_t GetEntityRenderMode(CBaseEntity* entity)
+		{
+			const char* prop = g_pGameConf->GetKeyValue("m_nRenderMode");
+
+			if (!prop) {
+				std::string buffer("m_nRenderMode");
+				prop = buffer.c_str();
+			}
+
+			return sm::GetEntProp<RenderMode_t>(entity, sm::Prop_Send, prop, 1);
+		}
+
+		/**
+		 * Sets an entity's render mode.
+		 *
+		 * @param entity        Entity index.
+		 * @param mode          RenderMode value.
+		 * @error               Invalid entity index, or lack of mod compliance.
+		 */
+		inline void SetEntityRenderMode(CBaseEntity* entity, RenderMode_t mode)
+		{
+			const char* prop = g_pGameConf->GetKeyValue("m_nRenderMode");
+
+			if (!prop) {
+				std::string buffer("m_nRenderMode");
+				prop = buffer.c_str();
+			}
+
+			sm::SetEntProp<RenderMode_t>(entity, sm::Prop_Send, prop, mode, 1);
+		}
 	}
 }

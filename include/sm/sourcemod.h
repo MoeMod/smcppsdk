@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdexcept>
+#include "extension.h"
 
 namespace sm {
     inline namespace sourcemod {
@@ -8,30 +8,13 @@ namespace sm {
         bool SDK_OnLoad(char* error, size_t maxlength, bool late);
         void SDK_OnUnload();
         bool SDK_OnMetamodLoad(ISmmAPI *ismm, char *error, size_t maxlen, bool late);
-
-        extern ICvar *icvar;
-        extern IServerPluginHelpers* serverpluginhelpers;
-        extern IGameConfig* g_pGameConf;
-
-        // Must match clients.inc
-        enum AuthIdType
-        {
-            AuthId_Engine = 0,     /**< The game-specific auth string as returned from the engine */
-
-            // The following are only available on games that support Steam authentication.
-            AuthId_Steam2,         /**< Steam2 rendered format, ex "STEAM_1:1:4153990" */
-            AuthId_Steam3,         /**< Steam3 rendered format, ex "[U:1:8307981]" */
-            AuthId_SteamID64,      /**< A SteamID64 (uint64) as a String, ex "76561197968573709" */
-        };
-
-        
-        inline RenderMode_t GetEntityRenderMode(CBaseEntity* entity);
-
-        inline void SetEntityRenderMode(CBaseEntity* entity, RenderMode_t mode);
     }
 };
 
+#include "impl/sourcemod_impl_global.hpp"
+
 #include "sourcemod_types.h"
+#include "sourcemod_enums.h"
 #include "sourcemod_convert.h"
 #include "sourcemod_usermessages.h"
 #include "sourcemod_halflife.h"
@@ -43,3 +26,8 @@ namespace sm {
 #include "sourcemod_filesystem.h"
 #include "sourcemod_translate.h"
 #include "sourcemod_string.h"
+
+#include "cstrike.h"
+#include "sdkhooks.h"
+#include "sdktools.h"
+#include "impl/sourcemod_impl.hpp"

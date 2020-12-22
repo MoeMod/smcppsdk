@@ -13,9 +13,10 @@ public:
         BaseTask * task = new Task<typename std::decay<Fn>::type, typename std::decay<BoundArgs>::type...>(std::forward<Fn>(fn), std::forward<BoundArgs>(args)...);
         AddTask(task);
     }
-
+    
     void CallAndClear();
-
+    void Clear();
+    ~ThinkQueue() { Clear(); }
 
 private:
     class BaseTask
@@ -60,6 +61,14 @@ inline void ThinkQueue::CallAndClear() {
     BaseTask* cur_head = head.exchange(nullptr);
     while (cur_head != nullptr) {
         std::move(*cur_head)();
+        delete std::exchange(cur_head, cur_head->next);
+    }
+}
+
+inline void ThinkQueue::Clear()
+{
+    BaseTask* cur_head = head.exchange(nullptr);
+    while (cur_head != nullptr) {
         delete std::exchange(cur_head, cur_head->next);
     }
 }

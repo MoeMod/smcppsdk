@@ -10,8 +10,6 @@ namespace sm
 		
 		inline namespace filesystem
 		{
-			extern IFileSystem* g_pFullFileSystem;
-
 			class SystemFile
 			{
 			public:

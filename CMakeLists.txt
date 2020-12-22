@@ -4,10 +4,6 @@ project(smcppsdk)
 add_library(smcppsdk INTERFACE)
 target_sources(smcppsdk INTERFACE 
     ${CMAKE_CURRENT_LIST_DIR}/src/sm/sdkhooks.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/sm/sdktools.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/sm/cstrike.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/sm/sourcemod.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/sm/sourcemod_usermessages.cpp
 )
 
 target_include_directories(smcppsdk INTERFACE

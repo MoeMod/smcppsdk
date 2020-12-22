@@ -58,7 +58,7 @@ namespace sm
 			 *
 			 * @return              Language number server is using.
 			 */
-			unsigned int GetServerLanguage()
+			inline unsigned int GetServerLanguage()
 			{
 				return translator->GetServerLanguage();
 			}
@@ -139,7 +139,7 @@ namespace sm
 			 * @param phrase        Phrase to look for.
 			 * @return              True if phrase exists.
 			 */
-			bool TranslationPhraseExists(const char* phrase)
+			inline bool TranslationPhraseExists(const char* phrase)
 			{
 				return collection->TranslationPhraseExists(phrase);
 			}
@@ -167,14 +167,14 @@ namespace sm
 				//return (collection->FindTranslation(phrase, langid, &trans) == Trans_Okay);
 			}
 			
-			int GetGlobalTarget()
+			inline int GetGlobalTarget()
 			{
 				return translator->GetGlobalTarget();
 			}
 
 			// Translate logic is in core/logic/snprintf, starts from LINE 795
 			// to 938
-			void _tr(const char* keyword){}
+			inline void _tr(const char* keyword){}
 		}
 	}
 }

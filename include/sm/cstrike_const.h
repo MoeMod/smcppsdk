@@ -23,7 +23,7 @@ enum CSWeaponSlot_e : int
 
 #define CS_DMG_HEADSHOT     (1 << 30)    /**< Headshot */
 
-enum CSRoundEndReason_e
+enum CSRoundEndReason_e : int
 {
     CSRoundEnd_TargetBombed = 0,           /**< Target Successfully Bombed! */
     CSRoundEnd_VIPEscaped,                 /**< The VIP has escaped! - Doesn't exist on CS:GO */

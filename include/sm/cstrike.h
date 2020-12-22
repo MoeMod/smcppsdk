@@ -6,11 +6,6 @@
 
 namespace sm {
     namespace cstrike {
-        namespace detail {
-            bool SDK_OnLoad(char *error, size_t maxlength, bool late);
-            void SDK_OnUnload();
-        }
-
         void CS_TerminateRound(float delay, CSRoundEndReason_e reason, bool blockhook = false);
 
         void SwitchTeam(CGameRules *gamerules, CBasePlayer *pEntity, CSTeam_e iTeam);
@@ -22,7 +17,9 @@ namespace sm {
         void CS_DropWeapon(CBasePlayer *pEntity, CBaseCombatWeapon *pWeapon, bool toss);
 
         inline namespace forwards {
-            extern EventDispatcher<Action(float&, CSRoundEndReason_e&)> CS_OnTerminateRound;
+            inline EventDispatcher<Action(float&, CSRoundEndReason_e&)> CS_OnTerminateRound;
         }
     }
 }
+
+#include "impl/cstrike_impl.hpp"

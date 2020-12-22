@@ -17,22 +17,11 @@
 #endif
 #include <iserver.h>
 
+#include "impl/sdktools_impl_global.hpp"
+#include "impl/sdktools_impl.hpp"
+
 namespace sm {
     namespace sdktools {
-        namespace detail {
-            bool SDK_OnLoad(char* error, size_t maxlength, bool late);
-            void SDK_OnUnload();
-            bool SDK_OnMetamodLoad(ISmmAPI* ismm, char* error, size_t maxlen, bool late);
-        }
-        void* FindSig(const char* name);
-        int FindOffset(const char* name);
-        extern IBinTools* g_pBinTools;
-        extern IGameConfig* g_pGameConf;
-        extern INetworkStringTableContainer* netstringtables;
-        extern IServerTools* servertools;
-        extern IServerGameClients* serverClients;
-        extern IServer* iserver;
-        extern variant_t g_Variant_t;
 
 #pragma region sdktools_client
         inline void InactivateClient(IGamePlayer* player)
