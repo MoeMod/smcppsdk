@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CDetour/detours.h"
+#include <CDetour/detours.h>
 
 namespace SourceMod {
     class IBinTools;

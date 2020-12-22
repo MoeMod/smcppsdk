@@ -38,7 +38,7 @@ namespace sm {
 	        template<class F, class...Args> struct make_common_ret_type<F, std::variant<Args...>> {
 	            using type = typename std::common_type<typename std::invoke_result<F, Args>::type...>::type;
 	        };
-	        template<class...Args> struct join_func : Args... {};
+	        template<class...Args> struct join_func : Args... { using Args::operator()...; };
 	        template<class...Args> join_func(Args...args)->join_func<Args...>; // CTAD
 		}
 
@@ -72,7 +72,7 @@ namespace sm {
 		{
 	        return Visit([](const auto& x) { return std_variant_t(std::in_place_type<typename std::decay<decltype(x)>::type>, x); }, v);
 		}
-		
+
 		inline variant_t FromStdVariant(const std_variant_t &sv)
 		{
 	        return std::visit(detail::join_func(

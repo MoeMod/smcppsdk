@@ -1,7 +1,7 @@
 #pragma once
 
 #include "util/ThinkQueue.h"
-#include "hook_result.h"
+#include "sm/hook_result.h"
 
 namespace SourceMod {
     class IGameConfig;
