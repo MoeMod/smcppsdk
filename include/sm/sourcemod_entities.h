@@ -15,28 +15,43 @@ namespace sm {
 		}
 		//native bool GetEntityNetClass(int edict, char[] clsname, int maxlength);
 		inline const char* GetEntityNetClass(edict_t* edict) {
-			CBaseEntity* pEntity = sm::ent_cast<CBaseEntity*>(edict);
-			IServerUnknown* unk = (IServerUnknown*)pEntity;
-			if (!pEntity) throw std::runtime_error("Your edict called is invalid.");
+			try
+			{
+				CBaseEntity* pEntity = sm::ent_cast<CBaseEntity*>(edict);
+				IServerUnknown* unk = (IServerUnknown*)pEntity;
+				if (!pEntity) throw std::runtime_error("Your edict called is invalid.");
 
-			IServerNetworkable* net = unk->GetNetworkable();
-			if (!net) throw std::runtime_error("This edict what you have called is not networkable.");
-			ServerClass* serverclass = net->GetServerClass();
-			return serverclass->GetName();
+				IServerNetworkable* net = unk->GetNetworkable();
+				if (!net) throw std::runtime_error("This edict what you have called is not networkable.");
+				ServerClass* serverclass = net->GetServerClass();
+				return serverclass->GetName();
+			}
+			catch (const std::runtime_error& e)
+			{
+				smutils->LogError(myself, e.what());
+			}
 		}
 		inline int GetEntSendPropOffs(CBaseEntity* entity, const char* prop, bool actual = false)
 		{
-			std::string temp = GetEntityNetClass(sm::ent_cast<edict_t*>(entity));
-			if (!temp.size()) return -1;
-			sm_sendprop_info_t info = {};
-			int local = -1;
-			int offset = 0;
-			if (!gamehelpers->FindSendPropInfo(temp.c_str(), prop, &info))
-				throw std::runtime_error("Unable to find the send prop: " + (std::string() + temp + prop));
-			local = info.prop->GetOffset();
-			offset = info.actual_offset;
+			try
+			{
+				std::string temp = GetEntityNetClass(sm::ent_cast<edict_t*>(entity));
+				if (!temp.size()) return -1;
+				sm_sendprop_info_t info = {};
 
-			return actual ? offset : local;
+				int local = -1;
+				int offset = 0;
+				if (!gamehelpers->FindSendPropInfo(temp.c_str(), prop, &info))
+					throw std::runtime_error("Unable to find the send prop: " + (std::string() + temp + "::" + prop));
+				local = info.prop->GetOffset();
+				offset = info.actual_offset;
+
+				return actual ? offset : local;
+			}
+			catch (const std::runtime_error& e)
+			{
+				smutils->LogError(myself, e.what());
+			}
 		}
 
 		template<class T>
@@ -95,14 +110,21 @@ namespace sm {
 
 		template<class T = cell_t>
 		T &EntProp(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Data), const char *prop, int size=sizeof(T), int element=0) {
-			assert(pEntity != nullptr);
-			sm_datatable_info_t info = {};
-			if (!gamehelpers->FindDataMapInfo(gamehelpers->GetDataMap(pEntity), prop, &info))
-				throw std::runtime_error("Property not found");
-			typedescription_t *td = info.prop;
-			ptrdiff_t offset = info.actual_offset + (element * (td->fieldSizeInBytes / td->fieldSize));
+			try
+			{
+				assert(pEntity != nullptr);
+				sm_datatable_info_t info = {};
+				if (!gamehelpers->FindDataMapInfo(gamehelpers->GetDataMap(pEntity), prop, &info))
+					throw std::runtime_error("Property not found");
+				typedescription_t* td = info.prop;
+				ptrdiff_t offset = info.actual_offset + (element * (td->fieldSizeInBytes / td->fieldSize));
 
-			return EntData<T>(pEntity, offset, size);
+				return EntData<T>(pEntity, offset, size);
+			}
+			catch (const std::runtime_error& e)
+			{
+				smutils->LogError(myself, e.what());
+			}
 		}
 		template<class T = cell_t>
 		const T &GetEntProp(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Data), const char *prop, int size=sizeof(T), int element=0) {
@@ -113,88 +135,126 @@ namespace sm {
 			return EntProp<T>(pEntity, Prop_Data, prop, size, element) = value;
 		}
 		inline std::size_t GetEntPropArraySize(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Data), const char *prop) {
-			assert(pEntity != nullptr);
-			sm_datatable_info_t info = {};
-			if(!gamehelpers->FindDataMapInfo(gamehelpers->GetDataMap(pEntity), prop, &info))
-				throw std::runtime_error("Property not found");
-			typedescription_t *td = info.prop;
-			return td->fieldSize;
+			try
+			{
+				assert(pEntity != nullptr);
+				sm_datatable_info_t info = {};
+				if (!gamehelpers->FindDataMapInfo(gamehelpers->GetDataMap(pEntity), prop, &info))
+				{
+					throw std::runtime_error(std::string() + "Prop not found: " + prop);
+				}
+				typedescription_t* td = info.prop;
+				return td->fieldSize;
+			}
+			catch (const std::runtime_error& e)
+			{
+				smutils->LogError(myself, e.what());
+			}
 		}
 		template<EntType_c T = CBaseHandle>
 		T GetEntPropEnt(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Data), const char* prop, int element = 0) {
 			assert(pEntity != nullptr);
 			sm_datatable_info_t info = {};
-			if (!gamehelpers->FindDataMapInfo(gamehelpers->GetDataMap(pEntity), prop, &info))
-				throw std::runtime_error("Property not found");
-			typedescription_t* td = info.prop;
-			ptrdiff_t offset = info.actual_offset + (element * (td->fieldSizeInBytes / td->fieldSize));
-			switch (td->fieldType)
+
+			try
 			{
-			case FIELD_EHANDLE:
-				return ent_cast<T>(EntData<CBaseHandle>(pEntity, offset));
-			case FIELD_CLASSPTR:
-				return ent_cast<T>(EntData<CBaseEntity *>(pEntity, offset));
-			case FIELD_EDICT:
-				return ent_cast<T>(EntData<edict_t *>(pEntity, offset));
-			case FIELD_CUSTOM:
-				if ((td->flags & FTYPEDESC_OUTPUT) == FTYPEDESC_OUTPUT)
-					return ent_cast<T>(EntData<variant_t>(pEntity, offset).eVal);
-			default:
-				break;
+				if (!gamehelpers->FindDataMapInfo(gamehelpers->GetDataMap(pEntity), prop, &info))
+				{
+					throw std::runtime_error(std::string() + "Prop not found: " + prop);
+				}
+				typedescription_t* td = info.prop;
+				ptrdiff_t offset = info.actual_offset + (element * (td->fieldSizeInBytes / td->fieldSize));
+				switch (td->fieldType)
+				{
+				case FIELD_EHANDLE:
+					return ent_cast<T>(EntData<CBaseHandle>(pEntity, offset));
+				case FIELD_CLASSPTR:
+					return ent_cast<T>(EntData<CBaseEntity*>(pEntity, offset));
+				case FIELD_EDICT:
+					return ent_cast<T>(EntData<edict_t*>(pEntity, offset));
+				case FIELD_CUSTOM:
+					if ((td->flags & FTYPEDESC_OUTPUT) == FTYPEDESC_OUTPUT)
+						return ent_cast<T>(EntData<variant_t>(pEntity, offset).eVal);
+				default:
+					break;
+				}
+				throw std::runtime_error("Data field is not an entity or not an edict.");
 			}
-			throw std::runtime_error("Data field is not an entity nor edict");
+			catch (const std::runtime_error& e)
+			{
+				smutils->LogError(myself, e.what());
+			}
 		}
 		template<EntType_c T = CBaseHandle>
-		void SetEntPropEnt(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Data), const char* prop, const T& other, int element = 0) {
+		void SetEntPropEnt(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Data), const char* prop, const T& other, int element = 0) noexcept {
 			assert(pEntity != nullptr);
 			sm_datatable_info_t info = {};
-			if (!gamehelpers->FindDataMapInfo(gamehelpers->GetDataMap(pEntity), prop, &info))
-				throw std::runtime_error("Property not found");
-			typedescription_t* td = info.prop;
-			ptrdiff_t offset = info.actual_offset + (element * (td->fieldSizeInBytes / td->fieldSize));
-			switch (td->fieldType)
+
+			try
 			{
-			case FIELD_EHANDLE:
-			{
-				CBaseHandle& ent = EntData<CBaseHandle>(pEntity, offset);
-				CBaseEntity* ent_set = ent_cast<CBaseEntity*>(other);
-				IHandleEntity* ent_set2 = (IHandleEntity*)ent_set;
-				return ent.Set(ent_set2), void();
-			}
-			case FIELD_CLASSPTR:
-				return EntData<CBaseEntity*>(pEntity, offset) = ent_cast<CBaseEntity*>(other), void();
-			case FIELD_EDICT:
-				return EntData<edict_t*>(pEntity, offset) = ent_cast<edict_t*>(other), void();
-			case FIELD_CUSTOM:
-				if ((td->flags & FTYPEDESC_OUTPUT) == FTYPEDESC_OUTPUT)
+				if (!gamehelpers->FindDataMapInfo(gamehelpers->GetDataMap(pEntity), prop, &info))
 				{
-					CBaseHandle& ent = EntData<variant_t>(pEntity, offset).eVal;
+					throw std::runtime_error(std::string() + "Prop not found: " + prop);
+				}
+				typedescription_t* td = info.prop;
+				ptrdiff_t offset = info.actual_offset + (element * (td->fieldSizeInBytes / td->fieldSize));
+				switch (td->fieldType)
+				{
+				case FIELD_EHANDLE:
+				{
+					CBaseHandle& ent = EntData<CBaseHandle>(pEntity, offset);
 					CBaseEntity* ent_set = ent_cast<CBaseEntity*>(other);
 					IHandleEntity* ent_set2 = (IHandleEntity*)ent_set;
 					return ent.Set(ent_set2), void();
 				}
-			default:
-				break;
+				case FIELD_CLASSPTR:
+					return EntData<CBaseEntity*>(pEntity, offset) = ent_cast<CBaseEntity*>(other), void();
+				case FIELD_EDICT:
+					return EntData<edict_t*>(pEntity, offset) = ent_cast<edict_t*>(other), void();
+				case FIELD_CUSTOM:
+					if ((td->flags & FTYPEDESC_OUTPUT) == FTYPEDESC_OUTPUT)
+					{
+						CBaseHandle& ent = EntData<variant_t>(pEntity, offset).eVal;
+						CBaseEntity* ent_set = ent_cast<CBaseEntity*>(other);
+						IHandleEntity* ent_set2 = (IHandleEntity*)ent_set;
+						return ent.Set(ent_set2), void();
+					}
+				default:
+					break;
+				}
+				throw std::runtime_error("Data field is not an entity nor edict");
 			}
-			throw std::runtime_error("Data field is not an entity nor edict");
+			catch (const std::runtime_error& e)
+			{
+				smutils->LogError(myself, e.what());
+			}
 		}
 
 		template<class T = cell_t>
 		T &EntProp(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Send), const char *prop, int size = sizeof(T), int element=0) {
-			assert(pEntity != nullptr);
-			sm_sendprop_info_t info = {};
-			IServerNetworkable *pNet = ((IServerUnknown *)pEntity)->GetNetworkable();
-			if(!pNet)
-				throw std::runtime_error("Edict is not networkable");
+			try
+			{
+				assert(pEntity != nullptr);
+				sm_sendprop_info_t info = {};
+				IServerNetworkable* pNet = ((IServerUnknown*)pEntity)->GetNetworkable();
+				if (!pNet)
+					throw std::runtime_error("Edict is not networkable");
 
-			if(!gamehelpers->FindSendPropInfo(pNet->GetServerClass()->GetName(), prop, &info))
-				throw std::runtime_error("Property not found");
+				if (!gamehelpers->FindSendPropInfo(pNet->GetServerClass()->GetName(), prop, &info))
+				{
+					throw std::runtime_error(std::string() + "Prop not found: " + prop);
+				}
 
-			SendProp *pProp = info.prop;
-			ptrdiff_t offset = info.actual_offset;
+				SendProp* pProp = info.prop;
+				ptrdiff_t offset = info.actual_offset;
 
-			T *data = (T *)(reinterpret_cast<intptr_t>(static_cast<CBaseEntity*>(pEntity)) + offset);
-			return *data;
+				T* data = (T*)(reinterpret_cast<intptr_t>(static_cast<CBaseEntity*>(pEntity)) + offset);
+				return *data;
+			}
+			catch (const std::runtime_error& e)
+			{
+				smutils->LogError(myself, e.what());
+			}
 		}
 		template<class T = cell_t>
 		const T &GetEntProp(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Send), const char *prop, int size=sizeof(T), int element=0) {
@@ -205,27 +265,36 @@ namespace sm {
 			return EntProp<T>(pEntity, Prop_Send, prop, size, element) = value;
 		}
 		inline std::size_t GetEntPropArraySize(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Send), const char *prop) {
-			assert(pEntity != nullptr);
-			sm_sendprop_info_t info = {};
-			IServerNetworkable *pNet = ((IServerUnknown *)pEntity)->GetNetworkable();
-			if(!pNet)
-				throw std::runtime_error("Edict is not networkable");
-
-			if(!gamehelpers->FindSendPropInfo(pNet->GetServerClass()->GetName(), prop, &info))
-				throw std::runtime_error("Property not found");
-
-			if (info.prop->GetType() != DPT_DataTable)
+			try
 			{
-				return 0;
-			}
+				assert(pEntity != nullptr);
+				sm_sendprop_info_t info = {};
+				IServerNetworkable* pNet = ((IServerUnknown*)pEntity)->GetNetworkable();
+				if (!pNet)
+					throw std::runtime_error("Edict is not networkable");
 
-			SendTable *pTable = info.prop->GetDataTable();
-			if (!pTable)
+				if (!gamehelpers->FindSendPropInfo(pNet->GetServerClass()->GetName(), prop, &info))
+				{
+					throw std::runtime_error(std::string() + "Prop not found: " + prop);
+				}
+
+				if (info.prop->GetType() != DPT_DataTable)
+				{
+					return 0;
+				}
+
+				SendTable* pTable = info.prop->GetDataTable();
+				if (!pTable)
+				{
+					throw std::runtime_error("Error looking up DataTable for prop");
+				}
+
+				return pTable->GetNumProps();
+			}
+			catch (const std::runtime_error& e)
 			{
-				throw std::runtime_error("Error looking up DataTable for prop");
+				smutils->LogError(myself, e.what());
 			}
-
-			return pTable->GetNumProps();
 		}
 		template<EntType_c T = CBaseHandle>
 		T GetEntPropEnt(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Send), const char* prop, int element = 0) {
