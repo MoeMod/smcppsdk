@@ -110,12 +110,13 @@ namespace sm {
 
 		constexpr struct {} Prop_Data = {};
 		constexpr struct {} Prop_Send = {};
+
+// to disable warning here, idk how to return a suitable value rather than let it crash.
 #pragma warning(disable:4715)
 		template<class T = cell_t>
 		T &EntProp(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Data), const char *prop, int size=sizeof(T), int element=0) {
 			assert(pEntity != nullptr);
 			sm_datatable_info_t info = {};
-
 			try
 			{
 				if (!gamehelpers->FindDataMapInfo(gamehelpers->GetDataMap(pEntity), prop, &info))
@@ -130,8 +131,8 @@ namespace sm {
 			catch (const std::runtime_error& e)
 			{
 				smutils->LogError(myself, e.what());
-
-				// HELP: To return a suitbale value rather let it crash
+				
+				// We are not returning any values here.
 			}
 		}
 		template<class T = cell_t>
@@ -151,13 +152,14 @@ namespace sm {
 				{
 					throw std::runtime_error(std::string() + "Prop not found: " + prop);
 				}
+				typedescription_t* td = info.prop;
+				return td->fieldSize;
 			}
 			catch (const std::runtime_error& e)
 			{
 				smutils->LogError(myself, e.what());
+				return 0;
 			}
-			typedescription_t* td = info.prop;
-			return td->fieldSize;
 		}
 		template<EntType_c T = CBaseHandle>
 		T GetEntPropEnt(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Data), const char* prop, int element = 0) {
@@ -263,11 +265,7 @@ namespace sm {
 			catch (const std::runtime_error& e)
 			{
 				smutils->LogError(myself, e.what());
-
-				T* data = (T*)(reinterpret_cast<intptr_t>(nullptr));
-				return *data;
 			}
-			
 		}
 		template<class T = cell_t>
 		const T &GetEntProp(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Send), const char *prop, int size=sizeof(T), int element=0) {
