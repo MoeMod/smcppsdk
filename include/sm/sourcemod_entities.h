@@ -20,7 +20,6 @@ namespace sm {
 				CBaseEntity* pEntity = sm::ent_cast<CBaseEntity*>(edict);
 				IServerUnknown* unk = (IServerUnknown*)pEntity;
 				if (!pEntity) throw std::runtime_error("Your edict called is invalid.");
-
 				IServerNetworkable* net = unk->GetNetworkable();
 				if (!net) throw std::runtime_error("This edict what you have called is not networkable.");
 				ServerClass* serverclass = net->GetServerClass();
@@ -29,10 +28,12 @@ namespace sm {
 			catch (const std::runtime_error& e)
 			{
 				smutils->LogError(myself, e.what());
+				return nullptr;
 			}
 		}
 		inline int GetEntSendPropOffs(CBaseEntity* entity, const char* prop, bool actual = false)
 		{
+			
 			try
 			{
 				std::string temp = GetEntityNetClass(sm::ent_cast<edict_t*>(entity));
@@ -51,7 +52,9 @@ namespace sm {
 			catch (const std::runtime_error& e)
 			{
 				smutils->LogError(myself, e.what());
+				return actual ? 0 : -1;
 			}
+			
 		}
 
 		template<class T>
@@ -107,15 +110,18 @@ namespace sm {
 
 		constexpr struct {} Prop_Data = {};
 		constexpr struct {} Prop_Send = {};
-
+#pragma warning(disable:4715)
 		template<class T = cell_t>
 		T &EntProp(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Data), const char *prop, int size=sizeof(T), int element=0) {
+			assert(pEntity != nullptr);
+			sm_datatable_info_t info = {};
+
 			try
 			{
-				assert(pEntity != nullptr);
-				sm_datatable_info_t info = {};
 				if (!gamehelpers->FindDataMapInfo(gamehelpers->GetDataMap(pEntity), prop, &info))
-					throw std::runtime_error("Property not found");
+				{
+					throw std::runtime_error(std::string() + "Prop not found: " + prop);
+				}
 				typedescription_t* td = info.prop;
 				ptrdiff_t offset = info.actual_offset + (element * (td->fieldSizeInBytes / td->fieldSize));
 
@@ -124,6 +130,8 @@ namespace sm {
 			catch (const std::runtime_error& e)
 			{
 				smutils->LogError(myself, e.what());
+
+				// HELP: To return a suitbale value rather let it crash
 			}
 		}
 		template<class T = cell_t>
@@ -135,21 +143,21 @@ namespace sm {
 			return EntProp<T>(pEntity, Prop_Data, prop, size, element) = value;
 		}
 		inline std::size_t GetEntPropArraySize(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Data), const char *prop) {
+			assert(pEntity != nullptr);
+			sm_datatable_info_t info = {};
 			try
 			{
-				assert(pEntity != nullptr);
-				sm_datatable_info_t info = {};
 				if (!gamehelpers->FindDataMapInfo(gamehelpers->GetDataMap(pEntity), prop, &info))
 				{
 					throw std::runtime_error(std::string() + "Prop not found: " + prop);
 				}
-				typedescription_t* td = info.prop;
-				return td->fieldSize;
 			}
 			catch (const std::runtime_error& e)
 			{
 				smutils->LogError(myself, e.what());
 			}
+			typedescription_t* td = info.prop;
+			return td->fieldSize;
 		}
 		template<EntType_c T = CBaseHandle>
 		T GetEntPropEnt(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Data), const char* prop, int element = 0) {
@@ -164,6 +172,7 @@ namespace sm {
 				}
 				typedescription_t* td = info.prop;
 				ptrdiff_t offset = info.actual_offset + (element * (td->fieldSizeInBytes / td->fieldSize));
+
 				switch (td->fieldType)
 				{
 				case FIELD_EHANDLE:
@@ -183,6 +192,7 @@ namespace sm {
 			catch (const std::runtime_error& e)
 			{
 				smutils->LogError(myself, e.what());
+				return ent_cast<T>(0);
 			}
 		}
 		template<EntType_c T = CBaseHandle>
@@ -232,11 +242,11 @@ namespace sm {
 
 		template<class T = cell_t>
 		T &EntProp(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Send), const char *prop, int size = sizeof(T), int element=0) {
+			assert(pEntity != nullptr);
+			sm_sendprop_info_t info = {};
+			IServerNetworkable* pNet = ((IServerUnknown*)pEntity)->GetNetworkable();
 			try
 			{
-				assert(pEntity != nullptr);
-				sm_sendprop_info_t info = {};
-				IServerNetworkable* pNet = ((IServerUnknown*)pEntity)->GetNetworkable();
 				if (!pNet)
 					throw std::runtime_error("Edict is not networkable");
 
@@ -244,7 +254,6 @@ namespace sm {
 				{
 					throw std::runtime_error(std::string() + "Prop not found: " + prop);
 				}
-
 				SendProp* pProp = info.prop;
 				ptrdiff_t offset = info.actual_offset;
 
@@ -254,7 +263,11 @@ namespace sm {
 			catch (const std::runtime_error& e)
 			{
 				smutils->LogError(myself, e.what());
+
+				T* data = (T*)(reinterpret_cast<intptr_t>(nullptr));
+				return *data;
 			}
+			
 		}
 		template<class T = cell_t>
 		const T &GetEntProp(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Send), const char *prop, int size=sizeof(T), int element=0) {
@@ -265,18 +278,17 @@ namespace sm {
 			return EntProp<T>(pEntity, Prop_Send, prop, size, element) = value;
 		}
 		inline std::size_t GetEntPropArraySize(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Send), const char *prop) {
+			assert(pEntity != nullptr);
+			sm_sendprop_info_t info = {};
+			IServerNetworkable* pNet = ((IServerUnknown*)pEntity)->GetNetworkable();
+
 			try
 			{
-				assert(pEntity != nullptr);
-				sm_sendprop_info_t info = {};
-				IServerNetworkable* pNet = ((IServerUnknown*)pEntity)->GetNetworkable();
 				if (!pNet)
 					throw std::runtime_error("Edict is not networkable");
 
 				if (!gamehelpers->FindSendPropInfo(pNet->GetServerClass()->GetName(), prop, &info))
-				{
 					throw std::runtime_error(std::string() + "Prop not found: " + prop);
-				}
 
 				if (info.prop->GetType() != DPT_DataTable)
 				{
@@ -294,6 +306,7 @@ namespace sm {
 			catch (const std::runtime_error& e)
 			{
 				smutils->LogError(myself, e.what());
+				return 0;
 			}
 		}
 		template<EntType_c T = CBaseHandle>
