@@ -1,7 +1,9 @@
 #pragma once
 
-#include "util/ThinkQueue.h"
 #include "sm/hook_result.h"
+#include <memory>
+
+#include <boost/asio/io_context.hpp>
 
 namespace SourceMod {
     class IGameConfig;
@@ -48,12 +50,17 @@ namespace sm {
         }
     	
         inline namespace functions {
-            inline ThinkQueue g_ThinkQueue = {};
+            inline std::shared_ptr<boost::asio::io_context> GetGameFrameContext()
+            {
+                static std::shared_ptr<boost::asio::io_context> ioc = std::make_shared<boost::asio::io_context>();
+                return ioc;
+            }
         }
 
         inline void OnGameFrame(bool simulating)
         {
-            g_ThinkQueue.CallAndClear();
+            auto ioc = GetGameFrameContext();
+            ioc->poll();
         }
     	
     	

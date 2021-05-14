@@ -3,10 +3,11 @@
 #include <IForwardSys.h>
 #include <array>
 
-#include "util/ThinkQueue.h"
 #include "interop.h"
 #include "hook_result.h"
 #include "hack_sharesys.h"
+
+#include <boost/asio/io_context.hpp>
 
 extern IForwardManager* g_pForwards;
 
@@ -65,13 +66,12 @@ namespace sm {
 				return detail::CreateGlobalForwardFunc_impl(name, type, detail::type_identity<FnType>());
 			}
 
-			extern ThinkQueue g_ThinkQueue;
-
 			// Extra : Thread-safe to call.
 			template<class Fn, class...Args>
 			void RequestFrame(Fn&& fn, Args&&...data)
 			{
-				g_ThinkQueue.AddTask(std::forward<Fn>(fn), std::forward<Args>(data)...);
+			    auto ioc = GetGameFrameContext();
+                ioc->post(std::bind(std::forward<Fn>(fn), std::forward<Args>(data)...));
 
 				//auto lambda = std::bind(std::forward<Fn>(fn), std::forward<Args>(data)...);
 				//using lambda_type = decltype(lambda);
@@ -83,12 +83,6 @@ namespace sm {
 				//};
 				//void* warp_lambda = new lambda_type(std::move(lambda));
 				//g_pSM->AddFrameAction(wrap_fn, warp_lambda);
-			}
-
-			template<class Fn, class...Args>
-			void RunOnMainThread(Fn&& fn, Args&&...data)
-			{
-				return sm::RequestFrame(std::forward<Fn>(fn), std::forward<Args>(data)...);
 			}
 
 			template<class Fn = void()>
