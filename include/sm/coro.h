@@ -19,7 +19,7 @@ namespace sm {
 		template<class Fn = void(*)(void(*)())>
 		boost::asio::awaitable<void> CreateAwaitable(Fn &&fn) // requires std::invocable<Fn, std::function<void()>>
 		{
-			auto ioc = sm::functions::GetGameFrameContext();
+			auto ioc = sourcemod::functions::GetGameFrameContext();
 			boost::asio::deadline_timer ddl(*ioc, boost::posix_time::ptime(boost::posix_time::pos_infin));
             std::invoke(fn, [&ddl]() mutable { ddl.cancel(); });
 			return ddl.async_wait(boost::asio::use_awaitable);
@@ -53,7 +53,7 @@ namespace sm {
         template<class Func>
         void AsyncAwait(boost::asio::awaitable<void> &&aw, Func &&f)
         {
-            auto ioc = sm::functions::GetGameFrameContext();
+            auto ioc = sourcemod::functions::GetGameFrameContext();
             boost::asio::co_spawn(*ioc, [&aw, &f]() mutable -> boost::asio::awaitable<void> {
                 co_await std::move(aw);
                 f();
@@ -63,7 +63,7 @@ namespace sm {
         template<class T, class Func>
         void AsyncAwait(boost::asio::awaitable<T> &&aw, Func &&f)
         {
-            auto ioc = sm::functions::GetGameFrameContext();
+            auto ioc = sourcemod::functions::GetGameFrameContext();
             boost::asio::co_spawn(*ioc, [&aw, &f]() mutable -> boost::asio::awaitable<void> {
                 T val = co_await std::move(aw);
                 if constexpr (std::is_invocable_v<Func, T>)
