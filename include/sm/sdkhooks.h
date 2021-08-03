@@ -42,10 +42,10 @@ namespace sm {
             void SDK_OnUnload();
         }
 
-        constexpr struct : detail::HookTag<Action(CBaseEntity *, CBaseEntity *)> {} SDKHook_EndTouch;
-        constexpr struct : detail::HookTag<void(CBaseEntity*, const FireBulletsInfo_t &)> {} SDKHook_FireBulletsPost;
-        constexpr struct : detail::HookTag<HookResult<int>(CBaseEntity*, TakeDamageInfo &)> {} SDKHook_OnTakeDamage;
-        constexpr struct : detail::HookTag<void(CBaseEntity*, TakeDamageInfo &)> {} SDKHook_OnTakeDamagePost;
+        constexpr struct : detail::HookTag<Action(CBaseEntity*, CBaseEntity*)> {} SDKHook_EndTouch;
+        constexpr struct : detail::HookTag<void(CBaseEntity*, const FireBulletsInfo_t&)> {} SDKHook_FireBulletsPost;
+        constexpr struct : detail::HookTag<HookResult<int>(CBaseEntity*, TakeDamageInfo&)> {} SDKHook_OnTakeDamage;
+        constexpr struct : detail::HookTag<void(CBaseEntity*, TakeDamageInfo&)> {} SDKHook_OnTakeDamagePost;
         constexpr struct : detail::HookTag<Action(CBaseEntity*)> {} SDKHook_PreThink;
         constexpr struct : detail::HookTag<Action(CBaseEntity*)> {} SDKHook_PostThink;
         constexpr struct : detail::HookTag<Action(CBaseEntity*, CCheckTransmitInfo*, bool)> {} SDKHook_SetTransmit;
@@ -64,11 +64,11 @@ namespace sm {
         constexpr struct : detail::HookTag<void(CBaseEntity*)> {} SDKHook_PreThinkPost;
         constexpr struct : detail::HookTag<void(CBaseEntity*)> {} SDKHook_PostThinkPost;
         constexpr struct : detail::HookTag<void(CBaseEntity*)> {} SDKHook_ThinkPost;
-        constexpr struct : detail::HookTag<void(CBaseEntity *, CBaseEntity *)> {} SDKHook_EndTouchPost;
+        constexpr struct : detail::HookTag<void(CBaseEntity*, CBaseEntity*)> {} SDKHook_EndTouchPost;
         constexpr struct : detail::HookTag<void(CBaseEntity*, void*)> {} SDKHook_GroundEntChangedPost;
         constexpr struct : detail::HookTag<void(CBaseEntity*)> {} SDKHook_SpawnPost;
         constexpr struct : detail::HookTag<void(CBaseEntity*, CBaseEntity*)> {} SDKHook_StartTouchPost;
-        constexpr struct : detail::HookTag<void(CBaseEntity *, CBaseEntity *)> {} SDKHook_TouchPost;
+        constexpr struct : detail::HookTag<void(CBaseEntity*, CBaseEntity*)> {} SDKHook_TouchPost;
         constexpr struct : detail::HookTag<Action(CBaseEntity*, IPhysicsObject*)> {} SDKHook_VPhysicsUpdate;
         constexpr struct : detail::HookTag<void(CBaseEntity*, IPhysicsObject*)> {} SDKHook_VPhysicsUpdatePost;
         constexpr struct : detail::HookTag<void(CBaseEntity*, CBaseCombatWeapon*)> {} SDKHook_WeaponCanSwitchToPost;
@@ -83,9 +83,9 @@ namespace sm {
         constexpr struct : detail::HookTag<HookResult<int>(CBaseEntity*)> {} SDKHook_GetMaxHealth;
         constexpr struct : detail::HookTag<Action(CBaseEntity*, CBaseEntity*)> {} SDKHook_Blocked;
         constexpr struct : detail::HookTag<void(CBaseEntity*, CBaseEntity*)> {} SDKHook_BlockedPost;
-        constexpr struct : detail::HookTag<HookResult<int>(CBaseEntity*, TakeDamageInfo &)> {} SDKHook_OnTakeDamage_Alive;
-        constexpr struct : detail::HookTag<void(CBaseEntity*, TakeDamageInfo &)> {} SDKHook_OnTakeDamage_AlivePost;
-        constexpr struct : detail::HookTag<HookResult<bool>(CBaseEntity *)> {} SDKHook_CanBeAutobalanced;
+        constexpr struct : detail::HookTag<HookResult<int>(CBaseEntity*, TakeDamageInfo&)> {} SDKHook_OnTakeDamage_Alive;
+        constexpr struct : detail::HookTag<void(CBaseEntity*, TakeDamageInfo&)> {} SDKHook_OnTakeDamage_AlivePost;
+        constexpr struct : detail::HookTag<HookResult<bool>(CBaseEntity*)> {} SDKHook_CanBeAutobalanced;
 
         // 注意：返回值必须保存到变量，否则事件会直接销毁
         template<class Tag, class...CallBackArgs>
@@ -101,8 +101,8 @@ namespace sm {
             eventListener = nullptr;
         }
 
-        void SDKHooks_TakeDamage(CBaseEntity *pVictim, const TakeDamageInfo &info);
-        void SDKHooks_DropWeapon(CBaseEntity *pPlayer, CBaseCombatWeapon *pWeapon, const Vector *pvecTarget, const Vector *pVelocity);
+        void SDKHooks_TakeDamage(CBaseEntity* pVictim, const TakeDamageInfo& info);
+        void SDKHooks_DropWeapon(CBaseEntity* pPlayer, CBaseCombatWeapon* pWeapon, const Vector* pvecTarget, const Vector* pVelocity);
 
     }
 
