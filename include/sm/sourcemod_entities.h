@@ -192,21 +192,16 @@ namespace sm {
 
 		}
 
+		// For Prop_Send::String, please use Get/SetEntPropString, rather this function.
 		template<class T = cell_t>
 		T &EntProp(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Send), const char *prop, int size = sizeof(T), int element=0) {
 			assert(pEntity != nullptr);
 			sm_sendprop_info_t info = {};
 			IServerNetworkable* pNet = ((IServerUnknown*)pEntity)->GetNetworkable();
-			if (!pNet)
-				throw std::runtime_error("Edict is not networkable");
-
-			if (!gamehelpers->FindSendPropInfo(pNet->GetServerClass()->GetName(), prop, &info))
-			{
-				throw std::runtime_error(std::string() + "Prop not found: " + prop);
-			}
+			if (!pNet) throw std::runtime_error("Edict is not networkable");
+			if (!gamehelpers->FindSendPropInfo(pNet->GetServerClass()->GetName(), prop, &info)) throw std::runtime_error(std::string() + "Prop not found: " + prop);
 			SendProp* pProp = info.prop;
 			ptrdiff_t offset = info.actual_offset;
-
 			T* data = (T*)(reinterpret_cast<intptr_t>(static_cast<CBaseEntity*>(pEntity)) + offset);
 			return *data;
 		}
@@ -214,10 +209,37 @@ namespace sm {
 		const T &GetEntProp(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Send), const char *prop, int size=sizeof(T), int element=0) {
 			return EntProp<T>(pEntity, Prop_Send, prop, size, element);
 		}
+		// Further investigation is required: Set is OK, but Get crashes.
 		template<class T = cell_t>
 		T &SetEntProp(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Send), const char *prop, const T &value, int size=sizeof(T), int element=0) {
+			if (std::is_same<T, const char*>::value || std::is_same<T, char*>::value) {
+				const char* sValue = g_pSM->GetCoreConfigValue("FollowCSGOServerGuidelines");
+				if (sValue && !strcasecmp(sValue, "no")) {
+					throw std::runtime_error("You must set \"FollowCSGOServerGuidelines\" to process this function.");
+				}
+			}
 			return EntProp<T>(pEntity, Prop_Send, prop, size, element) = value;
 		}
+		// I think that perhaps no goes with GetProxyFn to get Prop_Send string so that crashes the game.
+		const char* GetEntPropString(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Send), const char* prop, int element=0) {
+			assert(pEntity != nullptr);
+			sm_sendprop_info_t info = {};
+			IServerNetworkable* pNet = ((IServerUnknown*)pEntity)->GetNetworkable();
+			if (!pNet) throw std::runtime_error("Edict is not networkable");
+			if (!gamehelpers->FindSendPropInfo(pNet->GetServerClass()->GetName(), prop, &info)) throw std::runtime_error(std::string() + "Prop not found: " + prop);
+			SendProp* pProp = info.prop;
+			ptrdiff_t offset = info.actual_offset;
+			const char* src;
+			if (pProp->GetProxyFn()) {
+				DVariant var;
+				pProp->GetProxyFn()(pProp, pEntity, (const void*)(reinterpret_cast<intptr_t>(static_cast<CBaseEntity*>(pEntity)) + offset), &var, element, sm::ent_cast<cell_t>(pEntity));
+				src = var.m_pString;
+			} else {
+				src = *(char**)(reinterpret_cast<intptr_t*>(static_cast<CBaseEntity*>(pEntity)) + offset);
+			}
+			return src;
+		}
+		// identification: FollowCSGOGuidelines, especially in SE_CSGO.
 		inline std::size_t GetEntPropArraySize(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Send), const char *prop) {
 			assert(pEntity != nullptr);
 			sm_sendprop_info_t info = {};
