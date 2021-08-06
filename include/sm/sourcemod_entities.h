@@ -210,7 +210,7 @@ namespace sm {
 			return EntProp<T>(pEntity, Prop_Send, prop, size, element);
 		}
 		// I think that perhaps no goes with GetProxyFn to get Prop_Send string so that crashes the game.
-		const char* GetEntProp(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Send), const char* prop, int element = 0) {
+		const char* GetEntPropString(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Send), const char* prop, int element = 0) {
 			assert(pEntity != nullptr);
 			sm_sendprop_info_t info = {};
 			IServerNetworkable* pNet = ((IServerUnknown*)pEntity)->GetNetworkable();
