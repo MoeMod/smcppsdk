@@ -3,6 +3,7 @@
 #pragma once
 
 #include <extensions/IBinTools.h>
+#include <extensions/ISDKTools.h>
 #include <smsdk_ext.h>
 #include "sourcemod_types.h"
 #include "variant_t.h"
@@ -257,19 +258,99 @@ namespace sm {
             }
         }
 
+#ifdef _WIN32
+#undef GetProp
+#undef SetProp
+#endif
         namespace sdktools_gamerules {
-            //GameRules_GetProp
-            //GameRules_SetProp
-            //GameRules_GetPropFloat
-            //GameRules_SetPropFloat
-            //GameRules_GetPropEnt
-            //GameRules_SetPropEnt
-            //GameRules_GetPropVector
-            //GameRules_SetPropVector
-            //GameRules_GetPropString
-            //GameRules_SetPropString
-            //GameRules_GetRoundState
+            namespace detail {
+                void* GameRules()
+                {
+                    return g_pSDKTools->GetGameRules();
+                }
+
+                CBaseEntity* FindEntityByNetClass(int start, const char* classname)
+                {
+                    int maxEntities = gpGlobals->maxEntities;
+                    for (int i = start; i < maxEntities; i++)
+                    {
+                        edict_t* current = ent_cast<edict_t*>(i);
+                        if (!current || current->IsFree()) continue;
+
+                        IServerNetworkable* pNet = current->GetNetworkable();
+                        if (!pNet) continue;
+                        
+                        if (!pNet->GetEntityHandle()) continue;
+
+                        if (!strcmp(pNet->GetServerClass()->GetName(), classname))
+                            return gamehelpers->ReferenceToEntity(ent_cast<cell_t>(current));
+                    }
+                    return nullptr;
+                }
+
+                CBaseEntity* GetGameRulesProxyEnt()
+                {
+                    static cell_t proxyEntRef = -1;
+                    CBaseEntity* pProxy;
+                    if (proxyEntRef == -1 || (pProxy = gamehelpers->ReferenceToEntity(proxyEntRef)) == nullptr)
+                    {
+                        pProxy = FindEntityByNetClass(playerhelpers->GetMaxClients(), g_szGameRulesProxy);
+                        if (pProxy) proxyEntRef = gamehelpers->EntityToReference(pProxy);
+                    }
+                    
+                    return pProxy;
+                }
+
+                template<class T = cell_t>
+                T& GameRulesProp(const char* prop, int size = sizeof(T), int element = 0) {
+                    void* pGameRules = GameRules();
+                    assert(pGameRules != nullptr);
+                    sm_sendprop_info_t info = {};
+                    if (!gamehelpers->FindSendPropInfo(g_szGameRulesProxy, prop, &info)) 
+                        throw std::runtime_error(std::string() + "Prop not found in the gamerules: " + prop);
+                    SendProp* pProp = info.prop;
+                    ptrdiff_t offset = info.actual_offset;
+                    T* data = (T*)(reinterpret_cast<intptr_t>(static_cast<CBaseEntity*>(pGameRules)) + offset);
+                    return *data;
+                }
+            }
+
+            template<class T = cell_t>
+            const T& GetProp(const char* prop, int size = sizeof(T), int element = 0) {
+                return detail::GameRulesProp<T>(prop, size, element);
+            }
+
+            template<class T = cell_t>
+            T& SetProp(const char* prop, const T& value, int size = sizeof(T), int element = 0) {
+                const char* sValue = g_pSM->GetCoreConfigValue("FollowCSGOServerGuidelines");
+                if (sValue && !strcasecmp(sValue, "no")) {
+                    throw std::runtime_error("You must set \"FollowCSGOServerGuidelines\" true to process this function.");
+                }
+                return detail::GameRulesProp<T>(prop, size, element) = value;
+            }
+
+            template<EntType_c T = CBaseHandle>
+            T GetPropEnt(const char* prop, int element = 0) {
+                CBaseHandle ent = detail::GameRulesProp<CBaseHandle>(prop, sizeof(T), element);
+                return ent_cast<T>(ent);
+            }
+
+            template<EntType_c T = CBaseHandle>
+            void SetPropEnt(const char* prop, const T& other, int element = 0) {
+                CBaseHandle& ent = detail::GameRulesProp<CBaseHandle>(prop, sizeof(T), element);
+                CBaseEntity* ent_set = ent_cast<CBaseEntity*>(other);
+                IHandleEntity* ent_set2 = (IHandleEntity*)ent_set;
+                ent.Set(ent_set2);
+            }
+
+            inline RoundState GetRoundState() {
+                return static_cast<RoundState>(GetProp<int>("m_iRoundState"));
+            }
         }
+#ifdef _WIN32
+#define GetProp GetPropA
+#define SetProp SetpropA
+#endif
 
         namespace sdktools_stringtables {
             inline bool LockStringTables(bool lock) {

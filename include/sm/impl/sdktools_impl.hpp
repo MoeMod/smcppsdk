@@ -11,27 +11,20 @@ namespace sm {
                 if (!gameconfs->LoadGameConfigFile("sdktools.games", &g_pGameConf, conf_error, sizeof(conf_error)))
                     return false;
                 sharesys->AddDependency(myself, "bintools.ext", true, true);
-                SM_GET_IFACE(BINTOOLS, g_pBinTools);
+                sharesys->AddDependency(myself, "sdktools.ext", true, true);
 
-                char* addr;
-                if (g_pGameConf->GetMemSig("g_pGameRules", (void**)&addr) && addr)
+                g_szGameRulesProxy = g_pGameConf->GetKeyValue("GameRulesProxy");
+                if (!g_szGameRulesProxy || !strcmp(g_szGameRulesProxy, ""))
                 {
-                    g_ppGameRules = reinterpret_cast<void**>(addr);
+                    smutils->LogError(myself, "Error looking up \"GameRulesProxy\".");
+                    return false;
                 }
-                else if (g_pGameConf->GetMemSig("CreateGameRulesObject", (void**)&addr) && addr)
-                {
-                    int offset;
-                    if (!g_pGameConf->GetOffset("g_pGameRules", &offset) || !offset)
-                    {
-                        return false;
-                    }
-#ifdef PLATFORM_X86
-                    g_ppGameRules = *reinterpret_cast<void***>(addr + offset);
-#else
-                    int32_t varOffset = *(int32_t*)((unsigned char*)addr + offset);
-                    g_ppGameRules = *reinterpret_cast<void***>((unsigned char*)addr + offset + sizeof(int32_t) + varOffset);
-#endif
-                }
+
+                SM_GET_IFACE(BINTOOLS, g_pBinTools);
+                SM_GET_IFACE(SDKTOOLS, g_pSDKTools);
+
+                iserver = g_pSDKTools->GetIServer();
+
                 return true;
             }
     		

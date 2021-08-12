@@ -6,6 +6,42 @@ namespace sm
 	{
 		inline namespace enums
 		{
+			enum RoundState {
+				// initialize the game, create teams
+				RoundState_Init,
+
+				//Before players have joined the game. Periodically checks to see if enough players are ready
+				//to start a game. Also reverts to this when there are no active players
+				RoundState_Pregame,
+
+				//The game is about to start, wait a bit and spawn everyone
+				RoundState_StartGame,
+
+				//All players are respawned, frozen in place
+				RoundState_Preround,
+
+				//Round is on, playing normally
+				RoundState_RoundRunning,
+
+				//Someone has won the round
+				RoundState_TeamWin,
+
+				//Noone has won, manually restart the game, reset scores
+				RoundState_Restart,
+
+				//Noone has won, restart the game
+				RoundState_Stalemate,
+
+				//Game is over, showing the scoreboard etc
+				RoundState_GameOver,
+
+				//Game is over, doing bonus round stuff
+				RoundState_Bonus,
+
+				//Between rounds
+				RoundState_BetweenRounds
+			};
+
 			enum NetFlow
 			{
 				NetFlow_Outgoing = 0,   /**< Outgoing traffic */
