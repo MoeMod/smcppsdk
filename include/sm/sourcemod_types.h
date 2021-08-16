@@ -7,7 +7,7 @@ class IServerUnknown;
 class IServerEntity;
 class CBaseEntity;
 class CGameRules;
-
+class CBaseEntityOutput;
 
 #ifndef BASEENTITY_H
 class CBaseEntity : public IServerEntity {};

@@ -17,7 +17,6 @@
 #include <toolframework/itoolentity.h>
 #endif
 #include <iserver.h>
-
 #include "impl/sdktools_impl_global.hpp"
 #include "impl/sdktools_impl.hpp"
 
@@ -79,27 +78,45 @@ namespace sm {
         }
 
         namespace sdktools_entoutput {
-            inline void FireEntityOutput(CBaseEntity* entity, const char* output, CBaseEntity* activator = nullptr, float delay = 0.0)
-            {
-                static MemFuncCaller<void(CBaseEntity::*)(const char*, CBaseEntity*, float)> caller(g_pBinTools, FindSig("FireOutput"));
-                return caller(entity, output, activator, delay);
-            }
-            inline void HookEntityOutput(const char* classname, const char* output, void* callback)
-            {
+            namespace detail {
+                void* FindOutputPointerByName(CBaseEntity* pEntity, const char* outputname)
+                {
+                    datamap_t* pMap = gamehelpers->GetDataMap(pEntity);
+                    while (pMap)
+                    {
+                        for (int i = 0; i < pMap->dataNumFields; i++)
+                        {
+                            if (pMap->dataDesc[i].flags & FTYPEDESC_OUTPUT)
+                            {
+                                if (!strcmp(pMap->dataDesc[i].externalName, outputname))
+                                {
+                                    return reinterpret_cast<void*>((unsigned char*)pEntity + GetTypeDescOffs(&pMap->dataDesc[i]));
+                                }
+                            }
+                        }
+                        pMap = pMap->baseMap;
+                    }
 
+                    return nullptr;
+                }
             }
-            inline void HookSingleEntityOutput(CBaseEntity* entity, const char* output, void* callback, bool once = false)
+            // _ZN17CBaseEntityOutput10FireOutputE9variant_tP11CBaseEntityS2_f
+            // CBaseEntityOutput::FireOutput(variant_t, CBaseEntity*, CBaseEntity*, float)
+            // => FireEntityOutput(CBaseEntity* pActivator, CBaseEntity* pCaller, float delay)
+            //void FireEntityOutput(int caller, const char[] output, int activator, float delay)
+            inline void FireEntityOutput(CBaseEntity* pCaller, const char* output, CBaseEntity* pActivator, float flDelay = 0.0)
             {
-
+                variant_t v = g_Variant_t;
+                // void -> CBaseEntityOutput
+                CBaseEntityOutput* pOutput = (CBaseEntityOutput*)detail::FindOutputPointerByName(pCaller, output);
+                if (!pOutput) return;
+                static MemFuncCaller<void(CBaseEntityOutput::*)(variant_t, CBaseEntity*, CBaseEntity*, float)> caller(g_pBinTools, FindSig("FireOutput"));
+                return caller(pOutput, v, pActivator, pCaller, flDelay);
             }
-            inline bool UnhookEntityOutput(const char* classname, const char* output, void* callback)
-            {
-
-            }
-            inline void UnhookSingleEntityOutput(CBaseEntity* entity, const char* output, void* callback, bool once = false)
-            {
-
-            }
+            inline void HookEntityOutput(const char* classname, const char* output, void* callback) = delete;
+            inline void HookSingleEntityOutput(CBaseEntity* entity, const char* output, void* callback, bool once = false) = delete;
+            inline bool UnhookEntityOutput(const char* classname, const char* output, void* callback) = delete;
+            inline void UnhookSingleEntityOutput(CBaseEntity* entity, const char* output, void* callback, bool once = false) = delete;
         }
 
         namespace sdktools_functions {
@@ -258,13 +275,9 @@ namespace sm {
             }
         }
 
-#ifdef _WIN32
-#undef GetProp
-#undef SetProp
-#endif
         namespace sdktools_gamerules {
             namespace detail {
-                void* GameRules()
+                inline void* GameRules()
                 {
                     return g_pSDKTools->GetGameRules();
                 }
@@ -316,12 +329,12 @@ namespace sm {
             }
 
             template<class T = cell_t>
-            const T& GetProp(const char* prop, int size = sizeof(T), int element = 0) {
+            const T& GameRulesGetProp(const char* prop, int size = sizeof(T), int element = 0) {
                 return detail::GameRulesProp<T>(prop, size, element);
             }
 
             template<class T = cell_t>
-            T& SetProp(const char* prop, const T& value, int size = sizeof(T), int element = 0) {
+            T& GameRulesSetProp(const char* prop, const T& value, int size = sizeof(T), int element = 0) {
                 const char* sValue = g_pSM->GetCoreConfigValue("FollowCSGOServerGuidelines");
                 if (sValue && !strcasecmp(sValue, "no")) {
                     throw std::runtime_error("You must set \"FollowCSGOServerGuidelines\" true to process this function.");
@@ -330,13 +343,13 @@ namespace sm {
             }
 
             template<EntType_c T = CBaseHandle>
-            T GetPropEnt(const char* prop, int element = 0) {
+            T GameRulesGetPropEnt(const char* prop, int element = 0) {
                 CBaseHandle ent = detail::GameRulesProp<CBaseHandle>(prop, sizeof(T), element);
                 return ent_cast<T>(ent);
             }
 
             template<EntType_c T = CBaseHandle>
-            void SetPropEnt(const char* prop, const T& other, int element = 0) {
+            void GameRulesSetPropEnt(const char* prop, const T& other, int element = 0) {
                 CBaseHandle& ent = detail::GameRulesProp<CBaseHandle>(prop, sizeof(T), element);
                 CBaseEntity* ent_set = ent_cast<CBaseEntity*>(other);
                 IHandleEntity* ent_set2 = (IHandleEntity*)ent_set;
@@ -344,13 +357,9 @@ namespace sm {
             }
 
             inline RoundState GetRoundState() {
-                return static_cast<RoundState>(GetProp<int>("m_iRoundState"));
+                return static_cast<RoundState>(GameRulesGetProp<int>("m_iRoundState"));
             }
         }
-#ifdef _WIN32
-#define GetProp GetPropA
-#define SetProp SetpropA
-#endif
 
         namespace sdktools_stringtables {
             inline bool LockStringTables(bool lock) {
