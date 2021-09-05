@@ -26,6 +26,7 @@ namespace sm {
 #include "sourcemod_filesystem.h"
 #include "sourcemod_translate.h"
 #include "sourcemod_string.h"
+#include "sourcemod_chrono.h"
 
 #include "cstrike.h"
 #include "sdkhooks.h"

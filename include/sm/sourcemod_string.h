@@ -11,71 +11,57 @@ namespace sm
 			// only accepts char/wchar_t
 			// otherwise is not accepted
 			template<typename T> concept Char_c = std::same_as<T, char> || std::same_as<T, wchar_t>;
-			template<Char_c charT>
-			struct iequal {
-				iequal(const std::locale& loc) : _loc(loc) {}
-				bool operator()(charT c1, charT c2) { return std::tolower(c1, _loc) == std::tolower(c2, _loc); }
-			private:
-				const std::locale& _loc;
-			};
 			
 			template<typename T> concept String_c = std::same_as<T, std::string> || std::same_as<T, std::wstring>;
-			template<String_c T>
-			int StrContains(const T& str1, const T& str2, const std::locale& loc = std::locale())
+
+			inline int StrContains(const String_c auto& str1, const String_c auto& str2, const std::locale& loc = std::locale())
 			{
-				typename T::const_iterator it = std::search(
+				auto it = std::search(
 					str1.begin(), str1.end(),
 					str2.begin(), str2.end(),
-					iequal<typename T::value_type>(loc)
+					[&loc](auto c1, auto c2) { return std::tolower(c1, loc) == std::tolower(c2, loc); }
 				);
 
 				if (it != str1.end()) return (it - str1.begin());
 				else return -1;
 			}
 
-			template<String_c T>
-			int FindCharInString(T& in, std::size_t keyword) { return (keyword != std::string::npos) ? keyword : -1; }
+			inline int FindCharInString(String_c auto & in, std::size_t keyword) { return (keyword != std::string::npos) ? keyword : -1; }
 			
 			// trim from start (in place)
-			template<String_c T>
-			static inline void ltrim(T& s) {
+			inline void ltrim(String_c auto& s) {
 				s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
 					return !std::isspace(ch);
 					}));
 			}
 
 			// trim from end (in place)
-			template<String_c T>
-			static inline void rtrim(T& s) {
+			inline void rtrim(String_c auto& s) {
 				s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
 					return !std::isspace(ch);
 					}).base(), s.end());
 			}
 
 			// trim from both ends (in place)
-			template<String_c T>
-			static inline void trim(T& s) {
+			inline void trim(String_c auto& s) {
 				ltrim(s);
 				rtrim(s);
 			}
 
 			// trim from start (copying)
-			template<String_c T>
-			static inline std::string ltrim_copy(T s) {
+			inline auto ltrim_copy(String_c auto s) {
 				ltrim(s);
 				return s;
 			}
 
 			// trim from end (copying)
-			template<String_c T>
-			static inline std::string rtrim_copy(T s) {
+			inline auto rtrim_copy(String_c auto s) {
 				rtrim(s);
 				return s;
 			}
 
 			// trim from both ends (copying)
-			template<String_c T>
-			static inline std::string trim_copy(T s) {
+			inline auto trim_copy(String_c auto s) {
 				trim(s);
 				return s;
 			}

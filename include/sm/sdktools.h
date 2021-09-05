@@ -560,6 +560,10 @@ namespace sm {
                 v.fieldType = FIELD_EHANDLE;
                 g_Variant_t = v;
             }
+            inline void SetVariantStd(const std_variant_t & value)
+            {
+                g_Variant_t = FromStdVariant(value);
+            }
         }
 
         namespace sdktools_misc {

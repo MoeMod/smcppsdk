@@ -7,10 +7,12 @@
 
 #include "sourcemod_functions.h"
 #include "sourcemod_timers.h"
+#include "sourcemod_chrono.h"
 
 #include <boost/asio/awaitable.hpp>
 #include <boost/asio/use_awaitable.hpp>
 #include <boost/asio/deadline_timer.hpp>
+#include <boost/asio/basic_waitable_timer.hpp>
 #include <boost/asio/detached.hpp>
 #include <boost/asio/co_spawn.hpp>
 
@@ -25,9 +27,11 @@ namespace sm {
 			return ddl.async_wait(boost::asio::use_awaitable);
 		}
 
-		inline auto CreateTimer(float interval)
+        inline auto CreateTimer(float interval)
 		{
-			return CreateAwaitable([interval](auto f) { sm::CreateTimer(interval, f); });
+            auto ioc = sourcemod::functions::GetGameFrameContext();
+            boost::asio::basic_waitable_timer<chrono::EngineClock> timer(*ioc, chrono::one_duration * interval);
+			return timer.async_wait(boost::asio::use_awaitable);
 		}
 
 		inline auto RequestFrame()

@@ -172,9 +172,98 @@ namespace sm
 				return translator->GetGlobalTarget();
 			}
 
+			inline std::string CoreTranslate2(const char* format, unsigned int numparams, void **params)
+			{
+				const char* fail_phrase;
+				size_t* pOutLength = nullptr;
+				char static_buffer[256] = { '\0' };
+				char* buffer = static_buffer;
+				size_t maxlength = 256;
+				if (!collection->FormatString(buffer,
+					maxlength,
+					format,
+					params,
+					numparams,
+					pOutLength,
+					&fail_phrase))
+				{
+					if (fail_phrase != NULL)
+					{
+						smutils->LogError(myself, "[SM] Could not find core phrase: %s", fail_phrase);
+					}
+					else
+					{
+						smutils->LogError(myself, "[SM] Unknown fatal error while translating a core phrase.");
+					}
+					return {};
+				}
+				while (*pOutLength >= maxlength - 1)
+				{
+					maxlength *= 2;
+					std::vector<char> dynamic_buffer;
+					dynamic_buffer.resize(maxlength);
+					buffer = dynamic_buffer.data();
+					if (!collection->FormatString(buffer,
+						maxlength,
+						format,
+						params,
+						numparams,
+						pOutLength,
+						&fail_phrase))
+					{
+						if (fail_phrase != NULL)
+						{
+							smutils->LogError(myself, "[SM] Could not find core phrase: %s", fail_phrase);
+						}
+						else
+						{
+							smutils->LogError(myself, "[SM] Unknown fatal error while translating a core phrase.");
+						}
+						return {};
+					}
+				}
+
+				return buffer;
+			}
+
+			namespace detail
+			{
+				void *ConvertParam(int x) { return reinterpret_cast<void *>(x); }
+				void *ConvertParam(const char *x) { return const_cast<void *>(static_cast<const void *>(x)); }
+				void *ConvertParam(std::string& x) { return ConvertParam(x.c_str()); }
+				void *ConvertParam(float x) = delete;
+				void* ConvertParam(double x) = delete;
+			}
+
+			template<class...Args>
+			inline std::string CoreTranslate(const char* format, Args &&...args)
+			{
+				void* params[sizeof...(Args) + 1] = { ConvertParam(std::forward<Args>(args))... };
+				auto numparams = sizeof...(Args);
+				return CoreTranslate2(format, numparams, params);
+			}
+
+
+			inline std::string CoreTranslate(const char* format, unsigned int numparams, ...)
+			{
+				va_list ap;
+				void* params[MAX_TRANSLATE_PARAMS];
+
+				va_start(ap, numparams);
+				for (unsigned int i = 0; i < numparams; i++)
+				{
+					params[i] = va_arg(ap, void*);
+				}
+				va_end(ap);
+				return CoreTranslate2(format, numparams, params);
+			}
+
 			// Translate logic is in core/logic/snprintf, starts from LINE 795
 			// to 938
-			inline void _tr(const char* keyword){}
+			inline void _tr(const char* keyword)
+			{
+
+			}
 		}
 	}
 }

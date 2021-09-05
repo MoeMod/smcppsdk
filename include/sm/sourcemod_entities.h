@@ -93,6 +93,32 @@ namespace sm {
 		constexpr struct {} Prop_Data = {};
 		constexpr struct {} Prop_Send = {};
 
+		void EntPropVisit(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Data), const char* prop, auto &&fn, int element = 0) {
+			assert(pEntity != nullptr);
+			sm_datatable_info_t info = {};
+			if (!gamehelpers->FindDataMapInfo(gamehelpers->GetDataMap(pEntity), prop, &info))
+			{
+				throw std::runtime_error(std::string() + "Prop not found: " + prop);
+			}
+			typedescription_t* td = info.prop;
+			ptrdiff_t offset = info.actual_offset + (element * (td->fieldSizeInBytes / td->fieldSize));
+			auto size = td->fieldSize;
+
+			fieldtype_t E = td->fieldType;
+			datamap::IfTypeIndex(E, [fn, pEntity, offset, size](auto DataMapIndexInst) {
+				using T = typename decltype(DataMapIndexInst)::type;
+				if constexpr(!std::is_void_v<T>)
+					fn(EntData<T>(pEntity, offset, size));
+			});
+		}
+
+		void EntPropAuto(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Data), const char* prop, auto&& fn, int element = 0) {
+			EntPropVisit(pEntity, Prop_Data, prop, [fn](auto &&x) {
+				if constexpr (std::is_invocable<decltype(fn), decltype(x)>::value)
+					fn(std::forward<decltype(x)>(x));
+				}, element);
+		}
+
 		template<class T = cell_t>
 		T &EntProp(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Data), const char *prop, int size=sizeof(T), int element=0) {
 			assert(pEntity != nullptr);
@@ -154,7 +180,7 @@ namespace sm {
 			throw std::runtime_error("Data field is not an entity or not an edict.");
 		}
 		template<EntType_c T = CBaseHandle>
-		void SetEntPropEnt(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Data), const char* prop, const T& other, int element = 0) noexcept {
+		void SetEntPropEnt(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Data), const char* prop, const T& other, int element = 0) {
 			assert(pEntity != nullptr);
 			sm_datatable_info_t info = {};
 
@@ -206,7 +232,7 @@ namespace sm {
 			return *data;
 		}
 		template<class T = cell_t>
-		const T &GetEntProp(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Send), const char *prop, int size=sizeof(T), int element=0) {
+		decltype(auto) GetEntProp(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Send), const char *prop, int size=sizeof(T), int element=0) {
 			return EntProp<T>(pEntity, Prop_Send, prop, size, element);
 		}
 		// I think that perhaps no goes with GetProxyFn to get Prop_Send string so that crashes the game.
@@ -228,6 +254,10 @@ namespace sm {
 				src = *(char**)(reinterpret_cast<intptr_t*>(static_cast<CBaseEntity*>(pEntity)) + offset);
 			}
 			return src;
+		}
+		template<>
+		decltype(auto) GetEntProp<const char *>(AutoEntity<CBaseEntity*> pEntity, decltype(Prop_Send), const char* prop, int size, int element) {
+			return GetEntPropString(pEntity, Prop_Send, prop, element);
 		}
 		// Further investigation is required: Set is OK, but Get crashes.
 		template<class T = cell_t>
