@@ -32,3 +32,7 @@ namespace sm {
 #include "sdkhooks.h"
 #include "sdktools.h"
 #include "impl/sourcemod_impl.hpp"
+
+#if defined ENABLE_JSON
+#include "json.h"
+#endif
