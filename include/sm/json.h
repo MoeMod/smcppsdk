@@ -1,50 +1,57 @@
-// WARNING: The whole part is still under the DRAFT!
-// Referencing of this format: https://github.com/ErikMinekus/sm-ripext/blob/main/pawn/scripting/include/ripext/json.inc
+// Note:
+// 1. Referencing of this format: https://github.com/ErikMinekus/sm-ripext/blob/main/pawn/scripting/include/ripext/json.inc
+// 2. In fact, you just need to use json_t typename.
+// 3. The class functions is just a wrapper for object, but we are not recommend you to use it.
+// 4. Warning: You must use try/catch to handle this part!
+
 #pragma once
 #include <nlohmann/json.hpp>
-namespace sm::json
+#include <fstream>
+#include <iomanip>
+namespace sm
 {
-	using json_t = nlohmann::json;
-	class JSON {
-	public:
-		inline FILE* ToFile() { return nullptr; }
-		inline std::string ToString() { return {}; }
+	inline namespace json
+	{
+		using json_t = nlohmann::json;
 
-	protected:
-		json_t json;
-	};
+		std::string json_to_string(json_t j) { return j.dump(); }
 
-	class JSONObject : public JSON {
-	public:
-		explicit JSONObject(std::string from_string) {}
-		JSONObject(FILE* from_file) {}
-		inline json_t Get() { return this->json; }
-		template<typename T> inline T Get(std::string key) { return {  }; }
-		template<typename T> inline bool Set(std::string key, T val) { return true; }
-		//inline std::size_t Size() { return this->json.size(); }
-		inline bool HasKey(std::string keyname) {
-			return true;
-		}
-		inline bool Remove(std::string keyname) { return true; }
-		inline bool Clear() { return true; }
-		inline std::vector<std::string> Keys() {
-			return {};
-		}
-		inline bool IsNull(std::string key) { return true; }
-		std::size_t Size = this->json.size();
-	};
-	class JSONArray : public JSON {
-	public:
-		explicit JSONArray(std::string from_string) {}
-		JSONArray(FILE* from_file) {}
-		template<typename T> inline T Get(std::size_t index) { return {}; }
-		template<typename T> inline bool Set(std::size_t index, T val) { return true; }
-		template<typename T> inline bool Push(T val) { return true; }
-		inline bool IsNull(std::size_t index) { return true; }
-		inline bool Remove(std::size_t index) { return true; }
-		inline bool Clear() { return true; }
-		// This part should be std::vector.size()!!
-		// Still in draft!
-		std::size_t Length = this->json.size();
-	};
+		// Basic JSON class
+		class JSON
+		{
+		protected:
+			json_t json;
+		public:
+			std::string to_string() { return json.dump(); }
+			void to_file(std::string file_name, int indent = -1) { std::ofstream(file_name) << std::setw(indent) << json << std::endl; }
+		};
+
+		// You should always use try/catch to handle this!
+		class JSONObject : public JSON
+		{
+		public:
+			explicit JSONObject() {}
+			JSONObject(std::string str_in) { json = json_t::parse(str_in); }
+			JSONObject(json_t j) { json = j; }
+			JSONObject(std::ifstream i) { i >> json; }
+			std::vector<std::string> Key() {
+				std::vector<std::string> ret;
+				for (auto& obj : this->json.items())
+				{
+					ret.push_back(obj.key());
+				}
+				return ret;
+			}
+			template<typename T> T Get(std::string key) { return this->json.at(key).get<T>(); }
+			template<typename T> void Set(std::string key, T value) { this->json.at(key) = value; }
+			bool IsNull(std::string key) { return this->json.at(key).is_null(); }
+			bool HasKey(std::string key) { return this->json.contains(key); }
+			void Remove(std::string key) { this->json.erase(key); }
+			void Clear() { this->json.clear(); }
+		};
+
+		// JSONArray = std::vector<T>
+		// You should not use this class here.
+		class JSONArray : public JSON {};
+	}
 }
