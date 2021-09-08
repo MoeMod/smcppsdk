@@ -33,28 +33,6 @@ namespace sm
 			}
 		}
 
-		inline void LogEvent(LogLevel level, const char* format, ...)
-		{
-			char buffer[2048];
-			va_list ap;
-			va_start(ap, message);
-			vsnprintf(buffer, sizeof(buffer), message, ap);
-			va_end(ap);
-
-			switch (level)
-			{
-			case LEVEL_FATAL: fatal(buffer); break;
-			case LEVEL_ERROR: error(buffer); break;
-			case LEVEL_WARN: warn(buffer); break;
-			case LEVEL_INFO: info(buffer); break;
-			case LEVEL_DEBUG: debug(buffer); break;
-			case LEVEL_TRACE: trace(buffer); break;
-			case LEVEL_OFF: break; // Not logging here..
-			case LEVEL_ALL: smutils->LogMessage(myself, "There are %d log levels here.", LEVEL_ALL); break;
-			default: smutils->LogError(myself, "Unknown log level found: %d", level); break;
-			}
-		}
-
 		inline void trace(const char* message)
 		{
 			const char* level = LogLevelStr(LEVEL_TRACE);
@@ -90,6 +68,28 @@ namespace sm
 			const char* level = LogLevelStr(LEVEL_FATAL);
 			smutils->LogError(myself, "%s: %s", level, message);
 			abort();
+		}
+
+		inline void LogEvent(LogLevel level, const char* format, ...)
+		{
+			char buffer[2048];
+			va_list ap;
+			va_start(ap, format);
+			vsnprintf(buffer, sizeof(buffer), format, ap);
+			va_end(ap);
+
+			switch (level)
+			{
+			case LEVEL_FATAL: fatal(buffer); break;
+			case LEVEL_ERROR: error(buffer); break;
+			case LEVEL_WARN: warn(buffer); break;
+			case LEVEL_INFO: info(buffer); break;
+			case LEVEL_DEBUG: debug(buffer); break;
+			case LEVEL_TRACE: trace(buffer); break;
+			case LEVEL_OFF: break; // Not logging here..
+			case LEVEL_ALL: smutils->LogMessage(myself, "There are %d log levels here.", LEVEL_ALL); break;
+			default: smutils->LogError(myself, "Unknown log level found: %d", level); break;
+			}
 		}
 	}
 }
