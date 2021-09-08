@@ -27,6 +27,7 @@ namespace sm {
 #include "sourcemod_translate.h"
 #include "sourcemod_string.h"
 #include "sourcemod_chrono.h"
+#include "sourcemod_logging.h"
 
 #include "cstrike.h"
 #include "sdkhooks.h"
@@ -35,4 +36,28 @@ namespace sm {
 
 #if defined ENABLE_JSON
 #include "json.h"
+#endif
+
+#if defined ENABLE_INI
+#endif
+
+#if defined ENABLE_TOML
+#endif
+
+#if defined ENABLE_MYSQL
+#endif
+
+#if defined ENABLE_HTTP
+#endif
+
+#if defined ENABLE_SOCKET
+#endif
+
+#if defined ENABLE_WEBSOCKET
+#endif
+
+#if defined ENABLE_PGSQL
+#endif
+
+#if defined ENABLE_REDIS
 #endif
